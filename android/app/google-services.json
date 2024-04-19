@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "360114951078",
+    "project_id": "waspadafyp1",
+    "storage_bucket": "waspadafyp1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:360114951078:android:d243556dea760215c0b567",
+        "android_client_info": {
+          "package_name": "com.example.fypppp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwqwhvFUYAA7TPqXRhl6iFOmCnTze8PTc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

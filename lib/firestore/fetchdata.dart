@@ -1,47 +1,20 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart';
+import 'package:native_exif/native_exif.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class FirestoreFetcher {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final storage = FirebaseStorage.instance;
-
-  // Retrieve current user data
-  Future<Map<String, dynamic>> getCurrentUserData() async {
-    try {
-      // Get current user
-      User? currentUser = _auth.currentUser;
-
-      if (currentUser != null) {
-        // Retrieve user document from Firestore based on current user ID
-        DocumentSnapshot userSnapshot = await firestore.collection('users').doc(currentUser.uid).get();
-
-        if (userSnapshot.exists) {
-          // Extract user data
-          String fullName = userSnapshot['fullName'];
-          String email = userSnapshot['email'];
-
-          // Return user data
-          return {'fullName': fullName, 'email': email};
-        } else {
-          // Handle case where user document doesn't exist
-          return {'fullName': null, 'email': null};
-        }
-      } else {
-        // Handle case where no user is signed in
-        return {'fullName': null, 'email': null};
-      }
-    } catch (e) {
-      // Handle errors
-      print('Error fetching current user data: $e');
-      return {'fullName': null, 'email': null};
-    }
-  }
 
   // Update user data
   Future<void> updateUserData(String newName, String newUsername, String newPhone) async {
@@ -77,7 +50,7 @@ class FirestoreFetcher {
   }
 
 
-  Future<void> uploadReport(String caseType, String location, File mediaFile, String city) async {
+  Future<void> uploadReport(String caseType, String location, File mediaFile, String city, String desc) async {
     try {
       // Get current user
       User? currentUser = _auth.currentUser;
@@ -87,9 +60,14 @@ class FirestoreFetcher {
       }
 
       // Generate SHA256 hash for the media file
-      String hashKey = await generateFileSha256(mediaFile.path);
       DateTime date = DateTime.now();
       int flagsCount = 0;
+      int likesReport = 0;
+      List<String> parts = location.split(','); // Split the string by comma
+
+      // Extract latitude and longitude
+      String latitude = parts[0].trim(); // Remove leading/trailing whitespace
+      String longitude = parts[1].trim(); // Remove leading/trailing whitespace
 
       // Determine the file extension from the original file name
       String originalExtension = mediaFile.path.split('.').last;
@@ -97,6 +75,31 @@ class FirestoreFetcher {
       // Upload media file to Firebase Storage
       String fileName = '${DateTime.now()}_${caseType}_${currentUser.uid}.$originalExtension';
       print("fileName: $fileName");
+
+      if (originalExtension == "jpg"){
+        final exifData = await Exif.fromPath(mediaFile.path);
+        await exifData.writeAttribute(
+            "DateTimeOriginal", DateFormat("yyyy:MM:dd HH:mm:ss").format(DateTime.now())
+        );
+        await exifData.writeAttribute(
+            "UserComment", " $desc. Report $caseType uploaded using Waspada."
+        );
+        await exifData.writeAttributes({
+          'GPSLatitude': latitude,
+          'GPSLatitudeRef': 'N',
+          'GPSLongitude': longitude,
+          'GPSLongitudeRef': 'E',
+        });
+        final uploadedDate = await exifData.getOriginalDate();
+        final coordinates = await exifData.getLatLong();
+        final userComment = await exifData.getAttribute("UserComment");
+        print("Uploaded Date for $fileName: $uploadedDate");
+        print("Coordinates for $fileName: $coordinates");
+        print("User Comment for $fileName: $userComment");
+        await exifData.close();
+      }
+
+      String hashKey = await generateFileSha256(mediaFile.path);
 
       final storage = FirebaseStorage.instance;
       final mediaRef = storage.ref().child('reportevidence/$fileName');
@@ -117,7 +120,9 @@ class FirestoreFetcher {
       await firestore.collection('reports').add({
         'userId': currentUser.uid,
         'caseType': caseType,
+        'description' : desc,
         'flagsCount': flagsCount,
+        'likesCount' : likesReport,
         'location': location,
         'city' : city,
         'mediaUrl': mediaUrl,
@@ -141,7 +146,7 @@ class FirestoreFetcher {
 
       // Delete media file from Firebase Storage
       final storage = FirebaseStorage.instance;
-      final mediaRef = storage.ref().child('reportevidence/$mediaFileName.jpg');
+      final mediaRef = storage.ref().child('reportevidence/$mediaFileName');
       await mediaRef.delete();
       print("Media file deleted successfully");
     } catch (e) {
@@ -150,6 +155,43 @@ class FirestoreFetcher {
     }
   }
 
+  Future<void> deleteRecording(String reportId, String mediaFileName) async {
+    User? user = _auth.currentUser;
+
+    try {
+      // Delete report document from Firestore
+      await firestore.collection('users').doc(user!.uid).collection('SOSreports').doc(reportId).delete();
+      print("Report deleted successfully");
+
+      // Delete media file from Firebase Storage
+      final storage = FirebaseStorage.instance;
+      final mediaRef = storage.ref().child('SOSRecording/${user.uid}/$mediaFileName');
+      await mediaRef.delete();
+      print("Media file deleted successfully");
+    } catch (e) {
+      // Handle errors
+      print('Error deleting report: $e');
+    }
+  }
+
+  Future<void> deleteAudioRecording(String reportId, String mediaFileName) async {
+    User? user = _auth.currentUser;
+
+    try {
+      // Delete report document from Firestore
+      await firestore.collection('users').doc(user!.uid).collection('SOSAudioreports').doc(reportId).delete();
+      print("Report deleted successfully");
+
+      // Delete media file from Firebase Storage
+      final storage = FirebaseStorage.instance;
+      final mediaRef = storage.ref().child('SOSRecording/${user.uid}/$mediaFileName');
+      await mediaRef.delete();
+      print("Media file deleted successfully");
+    } catch (e) {
+      // Handle errors
+      print('Error deleting report: $e');
+    }
+  }
 
   Future<String> generateFileSha256(String filePath) async {
     var file = File(filePath);
@@ -202,6 +244,44 @@ class FirestoreFetcher {
     }
   }
 
+  Future<void> toggleLikeReport(String documentId, String currentUserUid) async {
+    try {
+      // Check if the user has already liked the report
+      final likeReports = await FirebaseFirestore.instance
+          .collection('userFlags')
+          .doc(currentUserUid)
+          .get();
+
+      if (likeReports.exists) {
+        final likedReportIds = likeReports.data()?['likeReports'] ?? [];
+        if (likedReportIds.contains(documentId)) {
+          // User has already liked this report, so decrement the likes count and remove the report from likeReports list
+          await FirebaseFirestore.instance.collection('reports').doc(documentId).update({
+            'likesCount': FieldValue.increment(-1),
+          });
+          await FirebaseFirestore.instance.collection('userFlags').doc(currentUserUid).update({
+            'likeReports': FieldValue.arrayRemove([documentId]),
+          });
+          print('Like decremented successfully!');
+          return;
+        }
+      }
+
+      // If the user hasn't liked the report yet, increment the likes count and add the report to likeReports list
+      await FirebaseFirestore.instance.collection('reports').doc(documentId).update({
+        'likesCount': FieldValue.increment(1),
+      });
+      await FirebaseFirestore.instance.collection('userFlags').doc(currentUserUid).set({
+        'likeReports': FieldValue.arrayUnion([documentId]),
+      }, SetOptions(merge: true));
+
+      print('Like incremented successfully!');
+    } catch (e) {
+      print('Error toggling like: $e');
+      // Handle error if necessary
+    }
+  }
+
   Future<List<String>> convertIDtoUsername(List<dynamic> userIds) async {
     List<String> usernames = [];
     for (var userId in userIds) {
@@ -237,38 +317,337 @@ class FirestoreFetcher {
   }
 
   void deleteCircle(String circleName) {
-    // Implement logic to delete the circle with the given circleName
-    // For example:
     FirebaseFirestore.instance.collection('circles').doc(circleName).delete();
   }
 
+  void leaveCircle(String circleName, String memberId) {
+    // First, get a reference to the circle document
+    DocumentReference circleRef = FirebaseFirestore.instance.collection('circles').doc(circleName);
+
+    // Then, update the circle document to remove the member
+    circleRef.update({
+      'members': FieldValue.arrayRemove([memberId])
+    }).then((_) {
+      print('Member $memberId left circle $circleName successfully.');
+    }).catchError((error) {
+      print('Failed to leave circle: $error');
+    });
+  }
+
+
   Future<void> downloadImage(String url, String mediaFileName) async {
-    print("1");
-    final response = await http.get(Uri.parse(url));
-    print("2");
-
-    final directory = await getExternalStorageDirectory();
-
-    if (directory == null) {
-      print('Error: Failed to get directory.');
-      return;
+    Uri link = Uri.parse(url);
+    if (await canLaunchUrl(link)) {
+      await launchUrl(link);
+    } else {
+      throw 'Could not launch $url';
     }
+  }
 
-    final dcimDirectory = Directory('${directory.path}/DCIM');
-    if (!dcimDirectory.existsSync()) {
-      dcimDirectory.createSync(recursive: true);
-    }
-
-    print("3");
-    final file = File('${dcimDirectory.path}/$mediaFileName.jpg');
-    print("4");
-
+  Future<void> sendFCMImageNotification(String senderId, String circleName, String content, String imageUrl) async {
     try {
-      await file.writeAsBytes(response.bodyBytes);
-      print('Downloaded image to: ${file.path}');
+      // Retrieve the circle document
+      DocumentSnapshot<Map<String, dynamic>> circleSnapshot =
+      await FirebaseFirestore.instance.collection('circles').doc(circleName).get();
+
+      if (!circleSnapshot.exists) {
+        print("Circle document with name $circleName does not exist.");
+        return;
+      }
+
+      String? currentUsername;
+
+      DocumentSnapshot<Map<String, dynamic>> currentUserSnapshot =
+      await FirebaseFirestore.instance.collection('users').doc(senderId).get();
+      currentUsername = currentUserSnapshot.data()?['username'];
+
+      // Extract the members list from the circle document data
+      List<dynamic> members = circleSnapshot.data()?['members'];
+
+      // Filter out the sender's ID from the members list
+      List<String> recipientIds = List<String>.from(members).where((memberId) => memberId != senderId).toList();
+
+      // Retrieve FCM tokens for the recipients
+      for (String memberId in recipientIds) {
+        DocumentSnapshot<Map<String, dynamic>> userSnapshot =
+        await FirebaseFirestore.instance.collection('users').doc(memberId).get();
+        if (userSnapshot.exists) {
+          // Extract the FCM token from the user document data
+          String? memberToken = userSnapshot.data()?['fcmToken'];
+          String? username = userSnapshot.data()?['username'];
+          if (memberToken != null) {
+            // Prepare notification payload
+            final message = {
+              "message": {
+                "token": memberToken,
+                "notification": {
+                  "body": "$currentUsername: Quick Capture - $content",
+                  "title": circleName,
+                  "image": imageUrl // Add image URL here
+                },
+                "data": {
+                  "type": "circles", // Add the type key-value pair here
+                },
+              },
+            };
+
+
+
+            // Prepare FCM request URL
+            final url = Uri.parse('https://fcm.googleapis.com/v1/projects/waspadafyp1/messages:send');
+
+            // Prepare authorization header
+            final oauthToken = await retrieveOAuthToken(); // Retrieve OAuth token from Firestore or any other source
+            final authorization = 'Bearer $oauthToken';
+
+            // Send FCM notification using HTTP POST request
+            final response = await http.post(
+              url,
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authorization,
+              },
+              body: jsonEncode(message),
+            );
+
+            // Check response status code
+            if (response.statusCode == 200) {
+              print("FCM notification sent successfully to member: $memberId");
+            } else {
+              print("Failed to send FCM notification to member: $memberId, Status code: ${response.statusCode}");
+            }
+          } else {
+            print("FCM token not found for member: $memberId");
+          }
+        } else {
+          print("User data not found in Firestore for member: $memberId");
+        }
+      }
     } catch (e) {
-      print('Error saving file: $e');
-      return;
+      print("Error occurred: $e");
+    }
+  }
+
+  Future<void> sendSOSFCMNotification(String userId, String location) async {
+    try {
+      // Retrieve all circles where the current user is a member
+      QuerySnapshot<Map<String, dynamic>> userCirclesSnapshot = await FirebaseFirestore.instance
+          .collection('circles')
+          .where('members', arrayContains: userId)
+          .get();
+
+      // Iterate through each circle
+      for (QueryDocumentSnapshot<Map<String, dynamic>> circleDoc in userCirclesSnapshot.docs) {
+        String circleName = circleDoc.id;
+
+        // Extract the members list from the circle document data
+        List<dynamic> members = circleDoc.data()['members'];
+
+        // Send notification to each member of the circle
+        String? currentUsername;
+
+        // Retrieve current user's username
+        DocumentSnapshot<Map<String, dynamic>> currentUserSnapshot =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+        currentUsername = currentUserSnapshot.data()?['username'];
+
+        if (currentUsername == null) {
+          print("Current user's username not found in Firestore");
+          return;
+        }
+
+        print("Current Username: $currentUsername");
+
+        // Send notification to each member of the circle
+        for (String memberId in members) {
+          if (memberId != userId && currentUsername != null) { // Exclude the current user
+            // Retrieve user document to get FCM token
+            DocumentSnapshot<Map<String, dynamic>> userSnapshot =
+            await FirebaseFirestore.instance.collection('users').doc(memberId).get();
+
+            if (userSnapshot.exists) {
+              String? memberToken = userSnapshot.data()?['fcmToken'];
+
+              if (memberToken != null) {
+                // Prepare notification payload
+                final message = {
+                  "message": {
+                    "token": memberToken,
+                    "notification": {
+                      "body": "$currentUsername is in danger at $location. Please call authorities (Circles: $circleName)",
+                      "title": 'SOS RECORDING by $currentUsername',
+                    },
+                    "data": {
+                      "type": "sos"
+                    },
+                  },
+                };
+
+                // Prepare FCM request URL and authorization header
+                final url = Uri.parse('https://fcm.googleapis.com/v1/projects/waspadafyp1/messages:send');
+                final oauthToken = await retrieveOAuthToken(); // Retrieve OAuth token
+                final authorization = 'Bearer $oauthToken';
+
+                // Send FCM notification using HTTP POST request
+                final response = await http.post(
+                  url,
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': authorization,
+                  },
+                  body: jsonEncode(message),
+                );
+
+                // Check response status code
+                if (response.statusCode == 200) {
+                  print("FCM notification sent successfully to member: $memberId");
+                } else {
+                  print("Failed to send FCM notification to member: $memberId, Status code: ${response.statusCode}");
+                }
+              } else {
+                print("FCM token not found for member: $memberId");
+              }
+            } else {
+              print("User data not found in Firestore for member: $memberId");
+            }
+          }
+        }
+
+      }
+    } catch (e) {
+      print("Error occurred: $e");
+    }
+  }
+
+  Future<String> downloadAndUploadCompressedImage(String imageUrl, String circleName, String fileName) async {
+    // Download the image
+    final response = await http.get(Uri.parse(imageUrl));
+    if (response.statusCode != 200) {
+      throw Exception('Failed to download image from $imageUrl');
+    }
+    final imageBytes = response.bodyBytes;
+
+    // Convert downloaded bytes to Uint8List (fix type mismatch)
+    final imageList = imageBytes.toList(); // Convert to List<int> first
+    final Uint8List compressedBytes = Uint8List.fromList(imageList);
+
+    // Compress the image iteratively until size is under 1 MB
+    final compressedFinalBytes = await _compressImageToTargetSize(compressedBytes, 720 * 720);
+
+    // Upload the compressed image to Firebase Storage
+    final storageRef = FirebaseStorage.instance.ref().child('circleevidence/$circleName/compressed_${fileName}');
+    final uploadTask = storageRef.putData(compressedFinalBytes);
+
+    // Get the download URL after upload
+    final snapshot = await uploadTask.whenComplete(() => null);
+    final downloadUrl = await snapshot.ref.getDownloadURL();
+
+    return downloadUrl;
+  }
+
+  Future<Uint8List> _compressImageToTargetSize(Uint8List imageBytes, int targetSize) async {
+
+      final compressedList = await FlutterImageCompress.compressWithList(
+        imageBytes,
+        minHeight: 480, // Adjust as needed (optional)
+        minWidth: 640, // Adjust as needed (optional)
+        quality: 50,
+      );
+      imageBytes = compressedList; // Now assigning Uint8List to Uint8List
+
+    return imageBytes;
+  }
+
+
+  Future<void> sendFCMNotification(String senderId, String circleName, String content) async {
+    try {
+      // Retrieve the circle document
+      DocumentSnapshot<Map<String, dynamic>> circleSnapshot =
+      await FirebaseFirestore.instance.collection('circles').doc(circleName).get();
+
+      if (!circleSnapshot.exists) {
+        print("Circle document with name $circleName does not exist.");
+        return;
+      }
+
+      // Extract the members list from the circle document data
+      List<dynamic> members = circleSnapshot.data()?['members'];
+
+      // Filter out the sender's ID from the members list
+      List<String> recipientIds = List<String>.from(members).where((memberId) => memberId != senderId).toList();
+
+      // Retrieve FCM tokens for the recipients
+      for (String memberId in recipientIds) {
+        DocumentSnapshot<Map<String, dynamic>> userSnapshot =
+        await FirebaseFirestore.instance.collection('users').doc(memberId).get();
+        if (userSnapshot.exists) {
+          // Extract the FCM token from the user document data
+          String? memberToken = userSnapshot.data()?['fcmToken'];
+          String? username = userSnapshot.data()?['username'];
+          if (memberToken != null) {
+            // Prepare notification payload
+            final message = {
+              "message": {
+                "token": memberToken,
+                "notification": {
+                  "body": "$username: $content",
+                  "title": circleName,
+                },
+                "data": {
+                  "type": "circles" // Add the type key-value pair here
+                },
+              },
+            };
+
+
+            // Prepare FCM request URL
+            final url = Uri.parse('https://fcm.googleapis.com/v1/projects/waspadafyp1/messages:send');
+
+            // Prepare authorization header
+            final oauthToken = await retrieveOAuthToken(); // Retrieve OAuth token from Firestore or any other source
+            final authorization = 'Bearer $oauthToken';
+
+            // Send FCM notification using HTTP POST request
+            final response = await http.post(
+              url,
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authorization,
+              },
+              body: jsonEncode(message),
+            );
+
+            // Check response status code
+            if (response.statusCode == 200) {
+              print("FCM notification sent successfully to member: $memberId");
+            } else {
+              print("Failed to send FCM notification to member: $memberId, Status code: ${response.statusCode}");
+            }
+          } else {
+            print("FCM token not found for member: $memberId");
+          }
+        } else {
+          print("User data not found in Firestore for member: $memberId");
+        }
+      }
+    } catch (e) {
+      print("Error occurred: $e");
+    }
+  }
+
+  Future<String?> retrieveOAuthToken() async {
+    try {
+      DocumentSnapshot<Map<String, dynamic>> oauthSnapshot =
+      await FirebaseFirestore.instance.collection('token').doc('oauth').get();
+      if (oauthSnapshot.exists) {
+        return oauthSnapshot.data()?['oauth'];
+      } else {
+        print("OAuth token document not found in Firestore.");
+        return null;
+      }
+    } catch (e) {
+      print("Error retrieving OAuth token: $e");
+      return null;
     }
   }
 

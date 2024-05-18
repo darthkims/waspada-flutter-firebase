@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appwidget_text">SOS</string>
+    <string name="add_widget">Add SOS button</string>
+    <string name="app_widget_description">SOS button shortcut</string>
+</resources>

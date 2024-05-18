@@ -1,46 +1,64 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:fypppp/casesaround.dart';
 import 'package:fypppp/circles.dart';
+import 'package:fypppp/navbar.dart';
+import 'package:fypppp/offlinehome.dart';
 import 'package:fypppp/profile.dart';
 import 'package:fypppp/settings.dart';
 import 'package:fypppp/sos.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fypppp/reportcase.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dart:async';
 
-class Home extends StatelessWidget {
-  const Home({Key? key});
+import 'package:shared_preferences/shared_preferences.dart';
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Waspada',
-      home: MyHomePage(),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+class Home extends StatefulWidget {
+  const Home({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<Home> createState() => _HomeState();
 }
 
 
-class _MyHomePageState extends State<MyHomePage> {
+class _HomeState extends State<Home> {
   late MapController mapController;
-  LatLng _currentLocation = LatLng(2.194552187594141, 102.25283674118499); // Default location
+  LatLng _currentLocation = const LatLng(2.224388, 102.456645); // Default location
   int currentPageIndex = 0; // Index of the currently selected item
+  List<Marker> _markers = []; // List to hold dynamic markers
+  List<Map<String, dynamic>> _markerInfoList = [];
+  late StreamSubscription<Position> _positionStreamSubscription;
+  bool _shouldCenterMap = true; // Flag to determine if the map should be initially centered
 
   @override
   void initState() {
     super.initState();
     mapController = MapController();
-    _getLocation();
+    _positionStreamSubscription = Geolocator.getPositionStream().listen((Position position) {
+      if (mounted) {
+        setState(() {
+          _currentLocation = LatLng(position.latitude, position.longitude);
+          if (_shouldCenterMap) {
+            mapController.move(_currentLocation, 19.0);
+            _shouldCenterMap = false; // Set to false after initial centering
+          }
+          print("$_currentLocation");
+        });
+      }
+    });
+    addDynamicMarkersFromFirestore();
+  }
+
+  @override
+  void dispose() {
+    _positionStreamSubscription.cancel(); // Cancel the subscription to avoid memory leaks
+    super.dispose();
   }
 
   Future<void> _getLocation() async {
@@ -59,13 +77,10 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     } else {
-      // Location permission denied or restricted, handle accordingly
-      // You may show a dialog or message to the user explaining why location permission is necessary
-      // and guide them to grant permission from device settings.
     }
   }
 
-  void _onItemTapped(int index) {
+  void onItemTapped(int index) {
     setState(() {
       // _selectedIndex = index;
       switch (index) {
@@ -74,19 +89,286 @@ class _MyHomePageState extends State<MyHomePage> {
           break;
         case 1:
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => Circles()));
+            context,
+            PageRouteBuilder(
+              pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+                return const SOSPage();
+              },
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
           break;
         case 2:
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => CasesAround()));
+            context,
+            PageRouteBuilder(
+              pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+                return const Circles();
+              },
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
           break;
         case 3:
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => ProfilePage())); // Assuming Profile page
+            context,
+            PageRouteBuilder(
+              pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+                return const CasesAround();
+              },
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
+          break;
+        case 4:
+          Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+                return const ProfilePage();
+              },
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
           break;
       }
     });
   }
+
+  Future<void> addDynamicMarkersFromFirestore() async {
+    try {
+      // Access the Firestore collection containing reports
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('reports').get();
+
+      // Iterate through the documents in the collection
+      querySnapshot.docs.forEach((doc) {
+        // Extract the 'location' field from each document
+        Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+
+        if (data != null && data.containsKey('location')) {
+          // Extract latitude and longitude from the 'location' field
+          String locationString = data['location'] as String;
+          Timestamp timestamp = data['timeStamp'];
+          String caseType = data['caseType'];
+          String? description;
+          try {
+            description = data['description'] as String?;
+            if (description!.isEmpty) {
+              description = "No description available";
+            }
+          } catch (error) {
+            description = "No description available";
+          }
+
+          // Split the location string by comma to get latitude and longitude
+          List<String> parts = locationString.split(',');
+
+          double latitude = double.tryParse(parts[0].trim()) ?? 0.0;
+          double longitude = double.tryParse(parts[1].trim()) ?? 0.0;
+          String formattedDate = DateFormat('dd MMMM yyyy').format(timestamp.toDate());
+          String formattedTime = DateFormat('hh:mm a').format(timestamp.toDate());
+
+          // Call _addDynamicMarker with the location
+          _addDynamicMarker(latitude, longitude, formattedDate, caseType, description, formattedTime);
+        }
+      });
+    } catch (e) {
+      // Handle any errors
+      print('Error fetching locations from Firestore: $e');
+    }
+  }
+
+  void _addDynamicMarker(double latitude, double longitude, String date, String caseType, String description, String time) {
+    Future<String?> getAddressFromCoordinates(double latitude, double longitude) async {
+      try {
+        List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+        Placemark place = placemarks[0];
+
+        List<String?> addressParts = [
+          place.name,
+          place.thoroughfare,
+          place.subLocality,
+          place.locality,
+          place.postalCode,
+          place.administrativeArea
+        ];
+
+        // Filter out null values and join the non-null values with commas
+        String address = addressParts.where((part) => part != null && part.isNotEmpty).join(', ');
+        print('${place.name}, ${place.isoCountryCode},${place.country},${place.postalCode},${place.administrativeArea},${place.subAdministrativeArea},${place.locality},${place.subLocality}, ${place.thoroughfare}, ${place.subThoroughfare}');
+
+        return address;
+      } catch (e) {
+        print("Error getting address: $e");
+        return null;
+      }
+    }
+    setState(() {
+      // Add marker information to the list
+      _markerInfoList.add({
+        'latitude': latitude,
+        'longitude': longitude,
+        'date': date,
+        'caseType': caseType,
+        'description': description,
+        'time': time,
+      });
+      // Add a dynamic marker to the map
+      _markers.add(
+        Marker(
+          point: LatLng(latitude, longitude),
+          child: GestureDetector(
+            onTap: () async {
+              String? address = await getAddressFromCoordinates(latitude, longitude);
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text(caseType, style: const TextStyle(fontWeight: FontWeight.bold),),
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min, // Ensure the column takes minimum space
+                      children: [
+                        Text('Description: $description'),
+                        const SizedBox(height: 8), // Add some spacing between text items
+                        Text('Address: $address'),
+                        const SizedBox(height: 8), // Add some spacing between text items
+                        Text('Date: $date'),
+                        const SizedBox(height: 8), // Add some spacing between text items
+                        Text('Time: $time'),
+                      ],
+                    ),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Close'),
+                      ),
+                    ],
+                  );
+                },
+              );
+
+            },
+            child: const Icon(Icons.warning, size: 50, color: Colors.red),
+          ),
+          rotate: true,
+        ),
+      );
+    });
+  }
+
+  Future<void> _showMarkersList() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int distanceAlert = prefs.getInt('distanceAlert') ?? 1;
+    print('Distance Alert: $distanceAlert');
+
+    // Sort the marker info list by distance
+    _markerInfoList.sort((a, b) {
+      double distanceA = Geolocator.distanceBetween(
+        _currentLocation.latitude,
+        _currentLocation.longitude,
+        a['latitude'],
+        a['longitude'],
+      );
+      double distanceB = Geolocator.distanceBetween(
+        _currentLocation.latitude,
+        _currentLocation.longitude,
+        b['latitude'],
+        b['longitude'],
+      );
+      return distanceA.compareTo(distanceB);
+    });
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Text('Reported Cases', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            margin: const EdgeInsets.all(0),
+            height: 300, // Adjust height as needed
+            width: 400,
+            child: SingleChildScrollView(
+              // Wrap the Column with Scrollbar
+              child: Scrollbar(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _markerInfoList.map((data) {
+                    bool isKm = true;
+                    double shownDistance = 0.0;
+                    double latitude = data['latitude'];
+                    double longitude = data['longitude'];
+                    String caseType = data['caseType']; // Access case type
+                    String description = data['description'];
+                    double distance = Geolocator.distanceBetween(
+                      _currentLocation.latitude,
+                      _currentLocation.longitude,
+                      latitude,
+                      longitude,
+                    ) / 1000; // Convert to kilometers
+                    if (distance<1) {
+                      shownDistance = distance * 1000;
+                      isKm = false;
+                    } else {
+                      shownDistance = distance;
+                    }
+                    LatLng point = LatLng(latitude, longitude);
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: distance < distanceAlert ? Colors.red : Colors.white,
+                        borderRadius: BorderRadius.circular(10.0),
+                    ),
+                      margin: const EdgeInsets.all(5),
+                      child: ListTile(
+                        title: Text(
+                            caseType,
+                            style: TextStyle(color: distance < distanceAlert ? Colors.white : Colors.black, fontWeight: distance < distanceAlert ? FontWeight.bold : FontWeight.normal)
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(description), // Display case type
+                            Text(
+                              'Distance: ${isKm ? '${shownDistance.toStringAsFixed(2)} KM' : '${shownDistance.toStringAsFixed(2)} meter'}',
+                            ),
+
+                          ],
+                        ),
+                        onTap: () {
+                          mapController.move(point, 19.0);
+                          Navigator.of(context).pop(); // Close the dialog
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -112,11 +394,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 markers: [
                   Marker(
                     point: _currentLocation,
-                    child: Icon(Icons.navigation_outlined, size: 50,),
+                    child: const Icon(Icons.navigation_rounded, size: 50, color: Colors.blue,),
+                    rotate: true,
                   ),
+                  ..._markers,
                 ],
               ),
-
             ],
           ),
           Positioned(
@@ -130,7 +413,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   heroTag: UniqueKey(),
                   onPressed: _getLocation,
                   tooltip: 'Locate Me',
-                  child: Icon(Icons.my_location),
+                  child: const Icon(Icons.my_location),
                 ),
               ),
             ),
@@ -144,31 +427,49 @@ class _MyHomePageState extends State<MyHomePage> {
               child: FittedBox(
                 child: SpeedDial(
                   animatedIcon: AnimatedIcons.menu_close,
+                  animatedIconTheme: const IconThemeData(color: Colors.white),
+                  backgroundColor: Colors.blue,
                   overlayColor: Colors.black,
                   overlayOpacity: 0.5,
                   spaceBetweenChildren: 5,
                   spacing: 5,
                   children: [
                     SpeedDialChild(
-                      child: Icon(Icons.settings),
-                      backgroundColor: Colors.blue,
+                      child: const Icon(Icons.offline_bolt_outlined, color: Colors.white,),
+                      backgroundColor: Colors.lightBlueAccent,
+                      label: 'Offline Mode',
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const OfflineHome())
+                        );
+                      },
+                    ),
+                    SpeedDialChild(
+                      child: const Icon(Icons.settings, color: Colors.white,),
+                      backgroundColor: Colors.lightBlueAccent,
                       label: 'Settings',
                       onTap: () {
                         Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => Settings()));                  },
+                            MaterialPageRoute(builder: (context) => const SettingsPage())
+                        );
+                        },
                     ),
                     SpeedDialChild(
-                      child: Icon(Icons.notifications),
-                      backgroundColor: Colors.green,
+                      child: const Icon(Icons.notifications, color: Colors.white,),
+                      backgroundColor: Colors.lightBlueAccent,
                       label: 'Notifications',
                       onTap: () {
-                        // Handle Option 1 tap
+                        // Navigator.push(
+                        //     context,
+                        //     MaterialPageRoute(builder: (context) => NotificationPage())
+                        // );
                       },
                     ),
                     SpeedDialChild(
-                      child: Icon(Icons.flag),
-                      backgroundColor: Colors.orangeAccent,
+                      child: const Icon(Icons.flag, color: Colors.white,),
+                      backgroundColor: Colors.lightBlueAccent,
                       label: 'Report Case',
                       onTap: () {
                         Navigator.push(
@@ -182,6 +483,23 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
           ),
+          Positioned(
+            bottom: 200.0,
+            right: 16.0,
+            child: SizedBox(
+              height: 60.0, // Adjust height and width as needed
+              width: 60.0,
+              child: FittedBox(
+                child: FloatingActionButton(
+                  backgroundColor: Colors.yellow,
+                  heroTag: UniqueKey(),
+                  onPressed: _showMarkersList,
+                  tooltip: 'Show Markers',
+                  child: const Icon(Icons.warning_amber, size: 35,),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
@@ -191,59 +509,20 @@ class _MyHomePageState extends State<MyHomePage> {
         child: FloatingActionButton(
           heroTag: UniqueKey(),
           backgroundColor: Colors.red,
-          onPressed: () {
-            Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SOSPage()));
+          onPressed: () async {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SOSAudioPage(),
+                  ),
+                );
           },
-          child: Icon(Icons.sos, size: 70, color: Colors.white,),
-          shape: CircleBorder(),
-
+          child: const Icon(Icons.sos, size: 70, color: Colors.white),
+          shape: const CircleBorder(),
         ),
-      ),
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
-          labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>(
-                (Set<MaterialState> states) => states.contains(MaterialState.selected)
-                ? const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)
-                    : const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)
 
-          ),
-        ),
-        child: NavigationBar(
-          height: 75,
-          backgroundColor: Colors.blue,
-          onDestinationSelected: _onItemTapped, // Use _onItemTapped for selection
-          indicatorColor: Colors.white,
-          selectedIndex: currentPageIndex,
-          destinations: const <Widget>[
-            NavigationDestination(
-              selectedIcon: ImageIcon(
-                AssetImage('assets/images/appicon.png'), size: 30, // Replace with your image path
-              ),
-              icon: ImageIcon(
-                AssetImage('assets/images/appicon.png',), size: 30, color: Colors.white, // Replace with your image path
-              ),
-              label: 'Home',
-            ),
-            NavigationDestination(
-              selectedIcon: Icon(Icons.diversity_1_outlined, size: 30,),
-              icon: Icon(Icons.diversity_1, color: Colors.white, size: 30,),
-              label: 'Circles', // Empty label for a cleaner look (optional)
-            ),
-            NavigationDestination(
-              selectedIcon: Icon(Icons.settings_input_antenna_outlined, size: 30,),
-              icon: Icon(Icons.settings_input_antenna, color: Colors.white, size: 30,),
-              label: 'Cases Around',
-            ),
-            NavigationDestination(
-              selectedIcon: Icon(Icons.account_circle_outlined, size: 30,),
-              icon: Icon(Icons.account_circle, color: Colors.white, size: 30,),
-              label: 'Profile', // Empty label for a cleaner look (optional)
-            ),
-            ],
-          ),
       ),
+      bottomNavigationBar: CustomNavigationBar(currentPageIndex: currentPageIndex, onItemTapped: onItemTapped)
     );
   }
 }

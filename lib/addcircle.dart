@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore package
+import 'package:http/http.dart' as http;
+
 
 class AddCircle extends StatefulWidget {
   const AddCircle({Key? key}) : super(key: key);
@@ -88,6 +92,14 @@ class _AddCircleState extends State<AddCircle> {
         'members': memberIds,
         'admin' : userId,
       });
+
+      // Notify each member using FCM
+      memberIds.forEach((memberId) async {
+        // Skip sending notification to the current user
+        if (memberId != userId) {
+          await sendFCMNotification(memberId, circleName);
+        }
+      });
       Navigator.pop(context);
 
       // Print a message indicating that the circle was added successfully
@@ -98,19 +110,83 @@ class _AddCircleState extends State<AddCircle> {
     }
   }
 
+// Function to send FCM notification
+  Future<void> sendFCMNotification(String memberId, String circleName) async {
+    // 1. Get a Firebase Messaging token for the member
+    String? memberToken;
+    String? oauthToken;
 
+    DocumentSnapshot<Map<String, dynamic>> snapshot = await _firestore.collection('users').doc(memberId).get();
 
+    if (snapshot.exists) {
+      // Extract the FCM token from the document data
+      memberToken = snapshot.data()?['fcmToken'];
+      print("This is member token: $memberToken");
+    } else {
+      print("User data not found in Firestore.");
+    }
+
+    DocumentSnapshot<Map<String, dynamic>> oauth = await _firestore.collection('token').doc('oauth').get();
+    if (oauth.exists) {
+      oauthToken = oauth.data()?['oauth'];
+      // Now you can use the oauthValue
+    } else {
+      // Document with ID "oauth" does not exist
+    }
+
+    // 2. Check if token is available
+    if (memberToken == null) {
+      print("Failed to retrieve FCM token for member: $memberId");
+      return;
+    }
+
+    // 3. Prepare notification payload
+    final message = {
+      "message": {
+        "token": memberToken,
+        "notification": {
+          "body": "You have been added to the circle!",
+          "title": "$circleName"
+        }
+      }
+    };
+
+    // 4. Prepare FCM request URL
+    final url = Uri.parse('https://fcm.googleapis.com/v1/projects/waspadafyp1/messages:send');
+
+    // 5. Prepare authorization header
+    // final authorization = 'Bearer ya29.a0Ad52N38CQR67jDVjRcFmgCgeJD1ieBeuTCvOeqToGay3sdNVAxIEcUAhXZ83HTBA54J6uURAozvPSxRF01ke1IZHQOGUgdUZHuSHuQPhOu-duVU3LADtjZcarhQtcBSUBnY987imZU4fuDRr3VhYOGzaloxpd2OurLoFaCgYKAXsSARMSFQHGX2MiF0i9TpAAfvhIOlRxPxZALg0171';
+    final authorization = 'Bearer $oauthToken';
+    print("SHAKALAKA");
+
+    // 6. Send FCM notification using HTTP POST request
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authorization,
+      },
+      body: jsonEncode(message),
+    );
+
+    // 7. Check response status code
+    if (response.statusCode == 200) {
+      print("FCM notification sent successfully to member: $memberId");
+    } else {
+      print("Failed to send FCM notification: ${response.statusCode}");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Create Circle',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.blue,
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -119,26 +195,26 @@ class _AddCircleState extends State<AddCircle> {
           children: [
             TextField(
               controller: circleNameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Circle Name',
               ),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: TextField(
                     controller: usernameController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Enter members username',
                     ),
                   ),
                 ),
-                SizedBox(width: 8.0),
+                const SizedBox(width: 8.0),
                 ElevatedButton(
                   onPressed: addMember,
-                  child: Text(
+                  child: const Text(
                     'Add member',
                     style: TextStyle(color: Colors.white),
                   ),
@@ -154,12 +230,12 @@ class _AddCircleState extends State<AddCircle> {
                 ),
               ],
             ),
-            SizedBox(height: 16.0),
-            Text(
+            const SizedBox(height: 16.0),
+            const Text(
               'Members:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             // Display the list of members
             Expanded(
               child: ListView.builder(
@@ -168,10 +244,10 @@ class _AddCircleState extends State<AddCircle> {
                   return ListTile(
                     title: Text(
                       members[index],
-                      style: TextStyle(color: Colors.black),
+                      style: const TextStyle(color: Colors.black),
                     ),
                     trailing: IconButton(
-                      icon: Icon(Icons.delete),
+                      icon: const Icon(Icons.delete),
                       onPressed: () {
                         // Remove the member from the list
                         setState(() {
@@ -184,7 +260,7 @@ class _AddCircleState extends State<AddCircle> {
               ),
             ),
 
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () {
                 // Get circle name
@@ -193,7 +269,7 @@ class _AddCircleState extends State<AddCircle> {
                 if (circleName.isEmpty) {
                   // Display Snackbar if circle name is empty
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Circle name cannot be empty")),
+                    const SnackBar(content: Text("Circle name cannot be empty")),
                   );
                   return; // Exit onPressed function
                 }
@@ -201,14 +277,14 @@ class _AddCircleState extends State<AddCircle> {
                 if (members.isEmpty) {
                   // Display Snackbar if members list is empty
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Please add at least one member")),
+                    const SnackBar(content: Text("Please add at least one member")),
                   );
                   return; // Exit onPressed function
                 }
                 // Add circle to Firestore
                 addCircleToFirestore(circleName, members);
               },
-              child: Text(
+              child: const Text(
                 'Create Circle',
                 style: TextStyle(
                     color: Colors.white, fontWeight: FontWeight.bold),

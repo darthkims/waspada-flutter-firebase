@@ -1,273 +1,805 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:fypppp/casesaround.dart';
 import 'package:fypppp/circles.dart';
 import 'package:fypppp/firestore/fetchdata.dart';
 import 'package:fypppp/home.dart';
+import 'package:fypppp/navbar.dart';
+import 'package:fypppp/profileedit.dart';
+import 'package:fypppp/sos.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:intl/intl.dart';
+import 'package:video_player/video_player.dart';
 
 class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final FirestoreFetcher _firestoreFetcher = FirestoreFetcher();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _unameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  bool _isLoading = false;
-  int currentPageIndex = 3;
+  int currentPageIndex = 4;
+  String name = '';
 
-  void _onItemTapped(int index) {
+  void onItemTapped(int index) {
     setState(() {
       switch (index) {
         case 0:
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => Home()));
+            context,
+            PageRouteBuilder(
+              pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+                return const Home();
+              },
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
           break;
         case 1:
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => Circles()));
+            context,
+            PageRouteBuilder(
+              pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+                return const SOSPage();
+              },
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
           break;
         case 2:
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => CasesAround()));
+            context,
+            PageRouteBuilder(
+              pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+                return const Circles();
+              },
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
           break;
         case 3:
-
+          Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+                return const CasesAround();
+              },
+              transitionDuration: Duration.zero,
+              reverseTransitionDuration: Duration.zero,
+            ),
+          );
+          break;
+        case 4:
           break;
       }
     });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
-    // Fetch current user's data from Firestore
-    User? currentUser = _auth.currentUser;
-    if(currentUser != null) {
-      DocumentSnapshot userData = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
-      if(userData.exists) {
-        Map<String, dynamic> userDataMap = userData.data() as Map<String, dynamic>;
-        setState(() {
-          _nameController.text = currentUser.displayName ?? '';
-          _unameController.text = userDataMap['username'] ?? '';
-          _phoneController.text = userDataMap['phoneNumber'] ?? '';
-        });
-      }
-    }
-  }
-
-
-  Future<void> _updateUserData() async {
-    // Check if all fields are filled
-    if (!_areAllFieldsFilled()) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text("Please fill in all fields."),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text("OK"),
-              ),
-            ],
-          );
-        },
-      );
-      return;
-    }
-
-    setState(() {
-      _isLoading = true; // Show loading indicator
-    });
-
-    // Get new user data from text controllers
-    String newName = _nameController.text.trim();
-    String newUsername = _unameController.text.trim();
-    String newPhone = _phoneController.text.trim();
-
-    // Call the update method in FirestoreFetcher
-    await _firestoreFetcher.updateUserData(newName, newUsername, newPhone);
-
-    print("Updated info:");
-    print('$newUsername');
-    print('$newName');
-    print('$newPhone');
-    // Optionally, you can reload the user data after updating
-    await _loadUserData();
-
-    // Hide loading indicator
-    setState(() {
-      _isLoading = false;
-    });
-  }
-
-  bool _areAllFieldsFilled() {
-    return _nameController.text.isNotEmpty &&
-        _unameController.text.isNotEmpty &&
-        _phoneController.text.isNotEmpty;
   }
 
   @override
   Widget build(BuildContext context) {
+
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // The user is signed in
+      name = user.displayName ?? "Anonymous";
+    } else {
+      print("No user signed in.");
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Profile',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.blue,
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
         automaticallyImplyLeading: false,
       ),
-      backgroundColor: Color(0xFFFFFFFF),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Stack(
+      body: SingleChildScrollView(
+        child: Container(
+          margin: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                margin: EdgeInsets.all(30),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: InputDecoration(
-                        labelText: 'Name',
-                        labelStyle: TextStyle(color: Colors.black),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    TextFormField(
-                      controller: _unameController,
-                      decoration: InputDecoration(
-                        labelText: 'Username',
-                        labelStyle: TextStyle(color: Colors.black),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    TextFormField(
-                      controller: _phoneController,
-                      decoration: InputDecoration(
-                        labelText: 'Phone Number',
-                        labelStyle: TextStyle(color: Colors.black),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Color(0xFF6798F8)),
-                        shape: MaterialStateProperty.all(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      onPressed: _updateUserData,
-                      child: Text(
-                        'Update',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
+              Text('Hello $name!', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),),
+              const SizedBox(height: 20,),
+              const Divider(),
+              ListTile(
+                title: const Text('Edit Profile'),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileEditPage() ));
+                },
               ),
-              if (_isLoading)
-                Positioned.fill(
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Change the color here
-                    ),
-                  ),
-                ),
+              const Divider(), // Add a divider between menu items
+              ListTile(
+                title: const Text('SOS Video Recordings'),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ViewSOS()));
+                },
+              ),
+              const Divider(), // Add a divider between menu items
+              ListTile(
+                title: const Text('SOS Audio Recordings'),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ViewSOSAudio()));
+                },
+              ),
+              const Divider(), // Add a divider between menu items
+              const SizedBox(height: 20),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
-          labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>(
-                (Set<MaterialState> states) => states.contains(MaterialState.selected)
-                ? const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)
-                                : const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)
+      bottomNavigationBar: CustomNavigationBar(currentPageIndex: currentPageIndex, onItemTapped: onItemTapped)
+    );
+  }
+}
 
-          ),
+class ViewSOS extends StatefulWidget {
+  const ViewSOS({Key? key}) : super(key: key);
+
+  @override
+  State<ViewSOS> createState() => _ViewSOSState();
+}
+
+class _ViewSOSState extends State<ViewSOS> {
+  final FirestoreFetcher _firestoreFetcher = FirestoreFetcher();
+
+  @override
+  Widget build(BuildContext context) {
+
+    User? user = FirebaseAuth.instance.currentUser;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'SOS Video Recordings',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        child: NavigationBar(
-          height: 75,
-          backgroundColor: Colors.blue,
-          onDestinationSelected: _onItemTapped, // Use _onItemTapped for selection
-          indicatorColor: Colors.white,
-          selectedIndex: currentPageIndex,
-          destinations: const <Widget>[
-            NavigationDestination(
-              selectedIcon: ImageIcon(
-                AssetImage('assets/images/appicon.png'), size: 30, // Replace with your image path
-              ),
-              icon: ImageIcon(
-                AssetImage('assets/images/appicon.png',), size: 30, color: Colors.white, // Replace with your image path
-              ),
-              label: 'Home',
-            ),
-            NavigationDestination(
-              selectedIcon: Icon(Icons.diversity_1_outlined, size: 30,),
-              icon: Icon(Icons.diversity_1, color: Colors.white, size: 30,),
-              label: 'Circles', // Empty label for a cleaner look (optional)
-            ),
-            NavigationDestination(
-              selectedIcon: Icon(Icons.settings_input_antenna_outlined, size: 30,),
-              icon: Icon(Icons.settings_input_antenna, color: Colors.white, size: 30,),
-              label: 'Cases Around',
-            ),
-            NavigationDestination(
-              selectedIcon: Icon(Icons.account_circle_outlined, size: 30,),
-              icon: Icon(Icons.account_circle, color: Colors.white, size: 30,),
-              label: 'Profile', // Empty label for a cleaner look (optional)
-            ),
-            ],
-          ),
+        backgroundColor: Colors.blue,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: StreamBuilder(
+        stream: FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('SOSreports').orderBy('timeStamp', descending: true).snapshots(),
+        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No SOS recordings'));
+          } else {
+            return ListView.separated(
+              itemCount: snapshot.data!.docs.length,
+              itemBuilder: (context, index) {
+
+                final Map<String, dynamic> data = snapshot.data!.docs[index].data() as Map<String, dynamic>;
+                final String mediaUrl = data['mediaUrl'];
+                final String mediaFileName = data['videoName'];
+                final String hashKey = data['hashKey'];
+                final String location = data['location'] ?? 'No Location';
+                List<String> locationParts = location.split(',');
+                double latitude = double.parse(locationParts[0]);
+                double longitude = double.parse(locationParts[1]);
+                Future<String?> getAddressFromCoordinates(double latitude, double longitude) async {
+                  List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+                  Placemark place = placemarks[0];
+                  return "${place.name}, ${place.thoroughfare}, ${place.locality}, ${place.postalCode}, ${place.administrativeArea}";
+                }
+                final String documentId = snapshot.data!.docs[index].id;
+
+
+                // Convert timestamp to DateTime
+                DateTime timeStamp = (snapshot.data!.docs[index]['timeStamp'] as Timestamp).toDate();
+
+                // Format the DateTime
+                String formattedDateTime = DateFormat('dd MMMM yyyy, hh:mm a').format(timeStamp);
+
+
+                return FutureBuilder<String?>(
+                    future: getAddressFromCoordinates(latitude, longitude),
+                    builder: (context, addressSnapshot) {
+                      if (addressSnapshot.connectionState == ConnectionState.waiting) {
+                        return ListTile(
+                          title: const CircularProgressIndicator(),
+                          subtitle: Text(formattedDateTime),
+                        );
+                      }
+                      if (addressSnapshot.hasError) {
+                        return ListTile(
+                          title: const Text('Error getting address'),
+                          subtitle: Text(formattedDateTime),
+                        );
+                      }
+                      final String? address = addressSnapshot.data ?? 'Unknown address';
+                    return GestureDetector(
+                      onTap: () async {
+                        final scaffoldMessenger = ScaffoldMessenger.of(context);
+                        scaffoldMessenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Video Loading'),
+                          ),
+                        );
+                        Uri uri = Uri.parse(mediaUrl);
+                        final videoPlayerController = VideoPlayerController.networkUrl(uri);
+
+                        // Initialize the controller and display a loading indicator while it loads
+                        await videoPlayerController.initialize().then((_) {
+                          // Once initialized, show the video in a dialog
+                          _showVideoDialog(context, videoPlayerController);
+                        });
+                      },
+                      child: ListTile(
+                        title: Text(address!),
+                        subtitle: Text(formattedDateTime),
+                        trailing: IconButton(
+                            onPressed: () {
+                              showModalBottomSheet(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const SizedBox(height: 10,),
+                                        ListTile(
+                                          leading: const Icon(
+                                            Icons.download,
+                                            size: 36, // Adjust the size of the icon
+                                          ),
+                                          title: const Text(
+                                            'Download Recording',
+                                            style: TextStyle(fontSize: 20), // Adjust the font size
+                                          ),
+                                          onTap: () {
+                                            _firestoreFetcher.downloadImage(mediaUrl, mediaFileName);
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                        ListTile(
+                                          leading: const Icon(
+                                            Icons.info_outline,
+                                            size: 36, // Adjust the size of the icon
+                                          ),
+                                          title: const Text(
+                                            'See details',
+                                            style: TextStyle(fontSize: 20), // Adjust the font size
+                                          ),
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            showModalBottomSheet(
+                                              isScrollControlled: true,
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return Container(
+                                                  padding: const EdgeInsets.all(16.0),
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      const Text(
+                                                        'Location',
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 15,
+                                                        ),
+                                                      ),
+                                                      FutureBuilder(
+                                                        future: getAddressFromCoordinates(latitude, longitude),
+                                                        builder: (context, AsyncSnapshot<String?> addressSnapshot) {
+                                                          if (addressSnapshot.connectionState == ConnectionState.waiting) {
+                                                            return const SizedBox.shrink(); // Return empty space while waiting for address
+                                                          }
+                                                          if (addressSnapshot.hasError || addressSnapshot.data == null) {
+                                                            return const SizedBox.shrink(); // Return empty space if there's an error or no address
+                                                          }
+                                                          return Text(
+                                                            addressSnapshot.data!,
+                                                            style: const TextStyle(fontSize: 20),
+                                                          );
+                                                        },
+                                                      ),
+                                                      const SizedBox(height: 8.0),
+                                                      const Text(
+                                                        'Coordinate',
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 15,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        location,
+                                                        style: const TextStyle(fontSize: 20),
+                                                      ),
+                                                      const SizedBox(height: 8.0),
+                                                      const Text(
+                                                        'Date & Time',
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 15,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        formattedDateTime,
+                                                        style: const TextStyle(fontSize: 20),
+                                                      ),
+                                                      const SizedBox(height: 8.0),
+                                                      const Text(
+                                                        'SHA256 Hash:',
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 15,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        hashKey,
+                                                        style: const TextStyle(fontSize: 20),
+                                                      )
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                        ListTile(
+                                          leading: const Icon(
+                                            Icons.delete,
+                                            size: 36, // Adjust the size of the icon
+                                          ),
+                                          title: const Text(
+                                            'Delete Recording',
+                                            style: TextStyle(fontSize: 20), // Adjust the font size
+                                          ),
+                                          onTap: () async {
+                                            Navigator.pop(context);
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) => AlertDialog(
+                                                title: const Text("Confirmation"),
+                                                content: const Text("Are you sure you want to delete the recording?"),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Navigator.pop(context); // Close the dialog
+                                                    },
+                                                    child: const Text("Cancel"),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () async {
+                                                      Navigator.pop(context); // Close the dialog
+                                                      await _firestoreFetcher.deleteRecording(documentId, mediaFileName);
+                                                      Navigator.of(context).pop(); // Close the modal bottom sheet
+                                                    },
+                                                    child: const Text("Delete"),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  }
+                              );
+                            }, icon: const Icon(Icons.more_vert)
+                        )
+                      ),
+                    );
+                  }
+                );
+
+              },
+              separatorBuilder: (context, index) => const Divider(),
+            );
+          }
+        },
       ),
     );
   }
+}
+
+class ViewSOSAudio extends StatefulWidget {
+  const ViewSOSAudio({super.key});
+
+  @override
+  State<ViewSOSAudio> createState() => _ViewSOSAudioState();
+}
+
+class _ViewSOSAudioState extends State<ViewSOSAudio> {
+  final _audioPlayer = AudioPlayer();
+  bool _isPlaying = false;
+  bool _isPaused = false;
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _unameController.dispose();
-    _phoneController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
+
+  @override
+  Widget build(BuildContext context) {
+    final FirestoreFetcher _firestoreFetcher = FirestoreFetcher();
+    User? user = FirebaseAuth.instance.currentUser;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'SOS Audio Recordings',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.blue,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(user?.uid)
+            .collection('SOSAudioreports')
+            .orderBy('timeStamp', descending: true)
+            .snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          }
+
+          final List<DocumentSnapshot> documents = snapshot.data!.docs;
+          if (documents.isEmpty) {
+            return const Center(
+              child: Text('No SOS audio reports found.'),
+            );
+          }
+
+          return ListView.separated(
+            itemCount: documents.length,
+            itemBuilder: (context, index) {
+              final data = documents[index].data() as Map<String, dynamic>;
+              final String mediaUrl = data['mediaUrl'];
+              final String mediaFileName = data['videoName'];
+              final String hashKey = data['hashKey'];
+              final String location = data['location'] ?? 'No Location';
+              List<String> locationParts = location.split(',');
+              double latitude = double.parse(locationParts[0]);
+              double longitude = double.parse(locationParts[1]);
+
+              Future<String?> getAddressFromCoordinates(double latitude, double longitude) async {
+                List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+                Placemark place = placemarks[0];
+                return "${place.name}, ${place.thoroughfare}, ${place.locality}, ${place.postalCode}, ${place.administrativeArea}";
+              }
+
+              final String documentId = snapshot.data!.docs[index].id;
+              DateTime timeStamp = (snapshot.data!.docs[index]['timeStamp'] as Timestamp).toDate();
+              String formattedDateTime = DateFormat('dd MMMM yyyy, hh:mm a').format(timeStamp);
+
+              return FutureBuilder<String?>(
+                future: getAddressFromCoordinates(latitude, longitude),
+                builder: (context, addressSnapshot) {
+                  if (addressSnapshot.connectionState == ConnectionState.waiting) {
+                    return ListTile(
+                      title: const CircularProgressIndicator(),
+                      subtitle: Text(formattedDateTime),
+                    );
+                  }
+                  if (addressSnapshot.hasError) {
+                    return ListTile(
+                      title: const Text('Error getting address'),
+                      subtitle: Text(formattedDateTime),
+                    );
+                  }
+                  final String? address = addressSnapshot.data ?? 'Unknown address';
+
+                  return GestureDetector(
+                    onTap: () async {
+                      await _audioPlayer.setSourceUrl(mediaUrl);
+                      Duration? duration = await _audioPlayer.getDuration();
+                      print(duration.toString());
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return StatefulBuilder(
+                            builder: (context, setState) {
+                              return AlertDialog(
+                                title: Text(address),
+                                content: Row(
+                                  children: [
+                                    Text(formattedDateTime),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () async {
+                                      if (!_isPlaying) {
+                                        await _audioPlayer.setSourceUrl(mediaUrl);
+                                        await _audioPlayer.resume();
+                                        setState(() {
+                                          _isPlaying = true;
+                                          _isPaused = false;
+                                        });
+                                      } else if (_isPaused) {
+                                        await _audioPlayer.resume();
+                                        setState(() {
+                                          _isPaused = false;
+                                        });
+                                      }
+                                    },
+                                    child: Text(_isPaused ? 'Resume' : 'Play'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      if (_isPlaying && !_isPaused) {
+                                        await _audioPlayer.pause();
+                                        setState(() {
+                                          _isPaused = true;
+                                        });
+                                      }
+                                    },
+                                    child: const Text('Pause'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      await _audioPlayer.stop();
+                                      setState(() {
+                                        _isPlaying = false;
+                                        _isPaused = false;
+                                      });
+                                      Navigator.of(context).pop(); // Close the dialog
+                                    },
+                                    child: const Text('Stop'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
+                    child: ListTile(
+                      title: Text(address!),
+                      subtitle: Text(formattedDateTime),
+                      trailing: IconButton(
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const SizedBox(height: 10),
+                                  ListTile(
+                                    leading: const Icon(
+                                      Icons.download,
+                                      size: 36,
+                                    ),
+                                    title: const Text(
+                                      'Download Recording',
+                                      style: TextStyle(fontSize: 20),
+                                    ),
+                                    onTap: () {
+                                      _firestoreFetcher.downloadImage(mediaUrl, mediaFileName);
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(
+                                      Icons.info_outline,
+                                      size: 36,
+                                    ),
+                                    title: const Text(
+                                      'See details',
+                                      style: TextStyle(fontSize: 20),
+                                    ),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      showModalBottomSheet(
+                                        isScrollControlled: true,
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return Container(
+                                            padding: const EdgeInsets.all(16.0),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  'Location',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                                FutureBuilder(
+                                                  future: getAddressFromCoordinates(latitude, longitude),
+                                                  builder: (context, AsyncSnapshot<String?> addressSnapshot) {
+                                                    if (addressSnapshot.connectionState == ConnectionState.waiting) {
+                                                      return const SizedBox.shrink();
+                                                    }
+                                                    if (addressSnapshot.hasError || addressSnapshot.data == null) {
+                                                      return const SizedBox.shrink();
+                                                    }
+                                                    return Text(
+                                                      addressSnapshot.data!,
+                                                      style: const TextStyle(fontSize: 20),
+                                                    );
+                                                  },
+                                                ),
+                                                const SizedBox(height: 8.0),
+                                                const Text(
+                                                  'Coordinate',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  location,
+                                                  style: const TextStyle(fontSize: 20),
+                                                ),
+                                                const SizedBox(height: 8.0),
+                                                const Text(
+                                                  'Date & Time',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  formattedDateTime,
+                                                  style: const TextStyle(fontSize: 20),
+                                                ),
+                                                const SizedBox(height: 8.0),
+                                                const Text(
+                                                  'SHA256 Hash:',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  hashKey,
+                                                  style: const TextStyle(fontSize: 20),
+                                                )
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(
+                                      Icons.delete,
+                                      size: 36,
+                                    ),
+                                    title: const Text(
+                                      'Delete Recording',
+                                      style: TextStyle(fontSize: 20),
+                                    ),
+                                    onTap: () async {
+                                      Navigator.pop(context);
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: const Text("Confirmation"),
+                                          content: const Text("Are you sure you want to delete the recording?"),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                              },
+                                              child: const Text("Cancel"),
+                                            ),
+                                            TextButton(
+                                              onPressed: () async {
+                                                Navigator.pop(context);
+                                                await _firestoreFetcher.deleteAudioRecording(documentId, mediaFileName);
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: const Text("Delete"),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        icon: const Icon(Icons.more_vert),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+            separatorBuilder: (context, index) => const Divider(),
+          );
+        },
+      ),
+    );
+  }
 }
+
+
+
+void _showVideoDialog(BuildContext context, VideoPlayerController videoPlayerController) async {
+  try {
+
+    // Initialize video player
+    await videoPlayerController.initialize();
+    videoPlayerController.setLooping(true);
+    // Show video player dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Stack(
+            children: <Widget>[
+              AspectRatio(
+                aspectRatio: videoPlayerController.value.aspectRatio,
+                child: VideoPlayer(videoPlayerController),
+              ),
+              Positioned(
+                top: 0.0,
+                right: 0.0,
+                child: GestureDetector(
+                  onTap: () {
+                    if (videoPlayerController.value.isPlaying) {
+                      videoPlayerController.pause();
+                    } else {
+                      videoPlayerController.play();
+                    }
+                  },
+                  child: Row(
+                    children: [
+                      Icon(
+                        videoPlayerController.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                        color: Colors.white,
+                        size: 36.0,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close,),
+                        color: Colors.white,
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          videoPlayerController.dispose();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    // Start playback after showing dialog
+    videoPlayerController.play();
+  } catch (error) {
+    // Handle initialization error (optional)
+    print('Error initializing video: $error');
+  }
+}
+
+
+
+
+

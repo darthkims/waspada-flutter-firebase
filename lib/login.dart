@@ -5,28 +5,28 @@ import 'package:fypppp/signup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginForm extends StatelessWidget {
-  const LoginForm({Key? key});
+  const LoginForm({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final FocusNode _emailFocus = FocusNode();
-    final FocusNode _passwordFocus = FocusNode();
+    final FocusNode emailFocus = FocusNode();
+    final FocusNode passwordFocus = FocusNode();
 
-    void _emailSubmitted(String value) {
-      FocusScope.of(context).requestFocus(_passwordFocus);
+    void emailSubmitted(String value) {
+      FocusScope.of(context).requestFocus(passwordFocus);
     }
 
-    final AuthenticationHelper _authHelper = AuthenticationHelper();
+    final AuthenticationHelper authHelper = AuthenticationHelper();
 
-    final TextEditingController _emailController = TextEditingController();
-    final TextEditingController _passwordController = TextEditingController();
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
 
     return Scaffold(
-      backgroundColor: Color(0xFF66EEEE),
+      backgroundColor: const Color(0xFF66EEEE),
       body: Center(
         child: SingleChildScrollView(
           child: Container(
-            margin: EdgeInsets.all(15),
+            margin: const EdgeInsets.all(15),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -37,11 +37,11 @@ class LoginForm extends StatelessWidget {
                   height: 200,
                 ),
                 TextFormField(
-                  controller: _emailController,
-                  focusNode: _emailFocus,
+                  controller: emailController,
+                  focusNode: emailFocus,
                   textInputAction: TextInputAction.next,
-                  onFieldSubmitted: _emailSubmitted,
-                  decoration: InputDecoration(
+                  onFieldSubmitted: emailSubmitted,
+                  decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.email, color: Colors.black),
                     labelText: 'Email',
                     labelStyle: TextStyle(color: Colors.black),
@@ -57,12 +57,12 @@ class LoginForm extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: 20,),
+                const SizedBox(height: 20,),
                 TextFormField(
-                  controller: _passwordController,
-                  focusNode: _passwordFocus,
+                  controller: passwordController,
+                  focusNode: passwordFocus,
                   obscureText: true,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.lock, color: Colors.black),
                     labelText: 'Password',
                     labelStyle: TextStyle(color: Colors.black),
@@ -78,10 +78,10 @@ class LoginForm extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: 30,),
+                const SizedBox(height: 30,),
                 ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Color(0xFF6798F8)),
+                      backgroundColor: MaterialStateProperty.all(const Color(0xFF6798F8)),
                       shape: MaterialStateProperty.all(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -89,14 +89,14 @@ class LoginForm extends StatelessWidget {
                       ),
                     ),
                     onPressed: () async {
-                      String? signInResult = await _authHelper.signIn(
-                        email: _emailController.text,
-                        password: _passwordController.text,
+                      String? signInResult = await authHelper.signIn(
+                        email: emailController.text,
+                        password: passwordController.text,
                       );
 
                       if (signInResult == null) {
                         SharedPreferences prefs = await SharedPreferences.getInstance();
-                        Future<String?> tokenFuture = _authHelper.getIdToken();
+                        Future<String?> tokenFuture = authHelper.getIdToken();
                         String? token = await tokenFuture;
                         if (token != null) {
                           prefs.setString('refreshToken', token);
@@ -104,7 +104,7 @@ class LoginForm extends StatelessWidget {
                         }
                         Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => Home())
+                            MaterialPageRoute(builder: (context) => const Home())
                         );
                       } else {
                         // Display sign-up error to the user
@@ -113,14 +113,14 @@ class LoginForm extends StatelessWidget {
                         );
                       }
                     },
-                    child: Text("Login", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white, height: 2),)
+                    child: const Text("Login", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white, height: 2),)
                 ),
-                SizedBox(height: 30,),
-                Divider(color: Color(0xFF6798F8),),
-                SizedBox(height: 30,),
+                const SizedBox(height: 30,),
+                const Divider(color: Color(0xFF6798F8),),
+                const SizedBox(height: 30,),
                 ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Color(0xFF6798F8)),
+                      backgroundColor: MaterialStateProperty.all(const Color(0xFF6798F8)),
                       shape: MaterialStateProperty.all(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -128,10 +128,10 @@ class LoginForm extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignUpForm())
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const SignUpForm())
                       );
                     },
-                    child: Text("New User", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white, height: 2),)
+                    child: const Text("New User", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white, height: 2),)
                 ),
               ],
             ),

@@ -24,6 +24,8 @@ class _AddReportState extends State<AddReport> {
     Placemark place = placemarks[0];
     return "${place.locality}";
   }
+  TextEditingController descriptionController = TextEditingController();
+
 
 
   @override
@@ -46,24 +48,6 @@ class _AddReportState extends State<AddReport> {
     }
     return null;
   }
-
-  Future<void> getLocationAndPrintCity() async {
-    String? location = await _getCurrentLocation();
-    if (location != null) {
-      List<String> coordinates = location.split(', ');
-      double latitude = double.parse(coordinates[0]);
-      double longitude = double.parse(coordinates[1]);
-      String? city = await getCity(latitude, longitude);
-      if (city != null) {
-        print("Current city: $city");
-      } else {
-        print("City not found for the given coordinates.");
-      }
-    } else {
-      print("Failed to retrieve location");
-    }
-  }
-
 
   Future<void> pickMedia(BuildContext context, String type) async {
     final picker = ImagePicker();
@@ -111,56 +95,82 @@ class _AddReportState extends State<AddReport> {
   @override
   Widget build(BuildContext context) {
     List<String> caseTypes = [
-      'Select Case Type',
+      'Theft',
+      'Public Disturbance',
       'Robbery',
+      'Flood',
+      'Earthquake',
       'Sexual Harassment',
       'Kidnapping',
       'Car Theft',
-      'Terrorism'
+      'Terrorism',
+      'Assault',
+      'Burglary',
+      'Drug Possession',
+      'Homicide',
+      'Stalking',
+      'Human Trafficking',
+      'Pick Pocket',
+      'Other'
     ];
+
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Add Report",
+        title: const Text("Add Report",
           style: TextStyle(color: Colors.white),
       ),
       backgroundColor: Colors.blue,
-      iconTheme: IconThemeData(color: Colors.white), // Set the leading icon color to white
+      iconTheme: const IconThemeData(color: Colors.white), // Set the leading icon color to white
     ),
       body: SingleChildScrollView(
         child: Container(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
+              const Center(
                 child: Text("Add Report", style: TextStyle(fontSize: 30)),
               ),
-              SizedBox(height: 20),
-              DropdownButtonFormField<String>(
-                borderRadius: BorderRadius.circular(30),
-                value: _selectedCaseType ?? caseTypes[0], // Set the initial value
-                items: caseTypes
-                    .map((String type) => DropdownMenuItem<String>(
-                  value: type,
-                  child: Text(type),
-                ))
-                    .toList(),
-                onChanged: (value) {
-                  // Update the selected case type when user selects a case type
-                  setState(() {
-                    _selectedCaseType = value;
-                  });
-                  print('Selected case type: $value');
-                },
+              const SizedBox(height: 20),
+              ButtonTheme(
+                alignedDropdown: true,
+                child: DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  menuMaxHeight: 400, // setting dropdown list max height
+                  borderRadius: BorderRadius.circular(30),
+                  items: caseTypes
+                      .map((String type) => DropdownMenuItem<String>(
+                    value: type,
+                    child: Text(type),
+                  ))
+                      .toList(),
+                  onChanged: (value) {
+                    // Update the selected case type when user selects a case type
+                    setState(() {
+                      _selectedCaseType = value;
+                    });
+                    print('Selected case type: $value');
+                  },
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    labelText: 'Case Type',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: descriptionController,
                 decoration: InputDecoration(
+                  labelText: 'Description',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),
-                  labelText: 'Case Type',
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               FutureBuilder<String?>(
                 future: _locationFuture,
                 builder: (context, snapshot) {
@@ -175,13 +185,13 @@ class _AddReportState extends State<AddReport> {
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                         suffixIcon: IconButton(
-                          icon: Icon(Icons.my_location_rounded),
+                          icon: const Icon(Icons.my_location_rounded),
                           onPressed: _getCurrentLocation,
                         ),
                       ),
                     );
                   } else if (snapshot.hasError) {
-                    return Text('Error getting location');
+                    return const Text('Error getting location');
                   }
                   return TextFormField(
                     key: UniqueKey(),
@@ -195,8 +205,8 @@ class _AddReportState extends State<AddReport> {
                   );
                 },
               ),
-              SizedBox(height: 20),
-              Text(
+              const SizedBox(height: 20),
+              const Text(
                 "Media:",
                 style: TextStyle(),
               ),
@@ -225,11 +235,11 @@ class _AddReportState extends State<AddReport> {
                                 fit: BoxFit.cover, // Ensure the image covers the container
                               )
                                   : _mediaType == 'video'
-                                  ? Text('Video Preview unavailable')
+                                  ? const Text('Video Preview unavailable')
                                   : Container() // Placeholder if the media type is neither photo nor video
                             else
                               Container(), // Placeholder if no media is selected
-                            SizedBox(height: 8), // Adding some space between media preview and media name
+                            const SizedBox(height: 8), // Adding some space between media preview and media name
                             Text(
                               _mediaType != null
                                   ? _mediaType == 'video'
@@ -244,7 +254,7 @@ class _AddReportState extends State<AddReport> {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.delete),
+                      icon: const Icon(Icons.delete),
                       onPressed: () {
                         if (_mediaType != null && _mediaName != null) {
                           setState(() {
@@ -252,14 +262,14 @@ class _AddReportState extends State<AddReport> {
                             _mediaName = null;
                           });
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text('Media deleted.'),
                               duration: Duration(seconds: 2), // Adjust the duration as needed
                             ),
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text('No media selected.'),
                               duration: Duration(seconds: 2), // Adjust the duration as needed
                             ),
@@ -271,7 +281,7 @@ class _AddReportState extends State<AddReport> {
                   ],
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 30,
               ),
               Row(
@@ -285,13 +295,13 @@ class _AddReportState extends State<AddReport> {
                           return Column(
                             mainAxisSize: MainAxisSize.min, // Ensure the Column only occupies the space it needs
                             children: <Widget>[
-                              SizedBox(height: 10,),
+                              const SizedBox(height: 10,),
                               ListTile(
-                                leading: Icon(
+                                leading: const Icon(
                                   Icons.photo,
                                   size: 36, // Adjust the size of the icon
                                 ),
-                                title: Text(
+                                title: const Text(
                                   'Upload Image',
                                   style: TextStyle(fontSize: 20), // Adjust the font size
                                 ),
@@ -300,13 +310,13 @@ class _AddReportState extends State<AddReport> {
                                   pickMedia(context, 'photo');
                                 },
                               ),
-                              SizedBox(height: 10,),
+                              const SizedBox(height: 10,),
                               ListTile(
-                                leading: Icon(
+                                leading: const Icon(
                                   Icons.video_file_outlined,
                                   size: 36, // Adjust the size of the icon
                                 ),
-                                title: Text(
+                                title: const Text(
                                   'Upload Video',
                                   style: TextStyle(fontSize: 20), // Adjust the font size
                                 ),
@@ -315,13 +325,13 @@ class _AddReportState extends State<AddReport> {
                                   pickMedia(context, 'video');
                                 },
                               ),
-                              SizedBox(height: 10,),
+                              const SizedBox(height: 10,),
                               ListTile(
-                                leading: Icon(
+                                leading: const Icon(
                                   Icons.camera_alt,
                                   size: 36, // Adjust the size of the icon
                                 ),
-                                title: Text(
+                                title: const Text(
                                   'Capture Image',
                                   style: TextStyle(fontSize: 20), // Adjust the font size
                                 ),
@@ -330,29 +340,29 @@ class _AddReportState extends State<AddReport> {
                                   captureMedia('photo');
                                 },
                               ),
-                              SizedBox(height: 10,),
+                              const SizedBox(height: 10,),
                               ListTile(
-                                leading: Icon(
+                                leading: const Icon(
                                   Icons.videocam,
                                   size: 36, // Adjust the size of the icon
                                 ),
-                                title: Text(
+                                title: const Text(
                                   'Capture Video',
-                                  style: TextStyle(fontSize: 20), // Adjust the font size
+                                  style: const TextStyle(fontSize: 20), // Adjust the font size
                                 ),
                                 onTap: () {
                                   Navigator.of(context).pop();
                                   captureMedia('video');
                                 },
                               ),
-                              SizedBox(height: 10,),
+                              const SizedBox(height: 10,),
                             ],
                           );
                         },
                       );
                     },
-                    icon: Icon(Icons.upload),
-                    label: Text('Upload Evidence'),
+                    icon: const Icon(Icons.upload),
+                    label: const Text('Upload Evidence'),
                     style: ButtonStyle(shape: MaterialStateProperty.all(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -362,7 +372,7 @@ class _AddReportState extends State<AddReport> {
                   ),
                 ],
               ),
-              SizedBox(height: 50,),
+              const SizedBox(height: 50,),
               Container(
                 width: 200, // Adjust the width as needed
                 child: ElevatedButton(
@@ -371,28 +381,45 @@ class _AddReportState extends State<AddReport> {
                     if (_selectedCaseType != null) {
                       try {
                         // Retrieve the location asynchronously
+                        String description = descriptionController.text;
                         String? location = await _locationFuture;
                         List<String> coordinates = location!.split(', ');
                         double latitude = double.parse(coordinates[0]);
                         double longitude = double.parse(coordinates[1]);
                         String? city = await getCity(latitude, longitude);
+                        if (city != null) {
+                          // Modify city name if it matches "Melaka" or "Malacca"
+                          if (city.toLowerCase() == 'melaka' || city.toLowerCase() == 'malacca') {
+                            city = 'Malacca City';
+                          }
+                          print("Current city: $city");
+                          // Proceed with uploading the report here
+                        }
                         // Check if location is available
-                        if (location != null) {
-                          // Print the location
-                          print('Uploading report with case type: $_selectedCaseType and location: $location and url $_mediaFile');
+                        // Print the location
+                        if (_mediaName != null) {
+                          print(
+                              'Uploading report with case type: $_selectedCaseType and location: $location and url $_mediaFile');
                           // Call the uploadReport method from FirestoreFetcher
-                          await _firestoreFetcher.uploadReport(_selectedCaseType!, location, _mediaFile!, city!);
+                          await _firestoreFetcher.uploadReport(
+                              _selectedCaseType!,
+                              location,
+                              _mediaFile!,
+                              city!,
+                              description);
                           Navigator.pop(context);
 
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text('Report uploaded successfully!'),
                             ),
                           );
                         } else {
-                          // Location is not available
-                          print('Location is not available.');
-                          // Show error message or take appropriate action
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please upload evidence!'),
+                            ),
+                          );
                         }
                       } catch (e) {
                         // Error occurred while getting location or uploading report
@@ -413,7 +440,7 @@ class _AddReportState extends State<AddReport> {
                       ),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     "Upload Report",
                     style: TextStyle(
                       color: Colors.white,

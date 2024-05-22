@@ -38,7 +38,7 @@ class CustomNavigationBar extends StatelessWidget {
           ),
           NavigationDestination(
             selectedIcon: Icon(Icons.sos_outlined, size: 30,),
-            icon: Icon(Icons.sos, color: Colors.red, size: 30,),
+            icon: Icon(Icons.sos, color: Colors.white, size: 30,),
             label: 'SOS Video',
           ),
           NavigationDestination(

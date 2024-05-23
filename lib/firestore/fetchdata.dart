@@ -181,10 +181,11 @@ class FirestoreFetcher {
       // Delete report document from Firestore
       await firestore.collection('users').doc(user!.uid).collection('SOSAudioreports').doc(reportId).delete();
       print("Report deleted successfully");
+      print(mediaFileName);
 
       // Delete media file from Firebase Storage
       final storage = FirebaseStorage.instance;
-      final mediaRef = storage.ref().child('SOSRecording/${user.uid}/$mediaFileName');
+      final mediaRef = storage.ref().child('SOSAudioRecording/${user.uid}/$mediaFileName');
       await mediaRef.delete();
       print("Media file deleted successfully");
     } catch (e) {

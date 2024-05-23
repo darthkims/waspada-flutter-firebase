@@ -78,6 +78,7 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
           child: Image.network(
             imageUrl,
             fit: BoxFit.contain,
+
           ),
         );
       },
@@ -225,6 +226,22 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                               child: Image.network(
                                                 mediaUrl,
                                                 fit: BoxFit.cover, // Adjust the fit of the image
+                                                loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                                                  if (loadingProgress == null) {
+                                                    return child;
+                                                  } else {
+                                                    return SizedBox(
+                                                      height: 400,
+                                                      child: Center(
+                                                        child: CircularProgressIndicator(
+                                                          value: loadingProgress.expectedTotalBytes != null
+                                                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                                              : null,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }
+                                                },
                                               ),
                                             ),
                                           ),

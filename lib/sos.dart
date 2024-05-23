@@ -95,6 +95,9 @@ class _SOSPageState extends State<SOSPage> {
         String currentDate = DateFormat('ss-MM-dd-yyyy').format(now);
         String filename = "SOSRecording_$currentDate";
 
+        // Upload the video file to Firebase Storage
+        await _uploadToFirebaseStorage(File(videoFile.path));
+
         // Define the destination directory
         String destDirectory = '/storage/emulated/0/DCIM/Waspada';
 
@@ -108,8 +111,6 @@ class _SOSPageState extends State<SOSPage> {
         await videoFile.saveTo(destPath);
 
         print('Video saved to: $destPath');
-        // Upload the video file to Firebase Storage
-        await _uploadToFirebaseStorage(File(videoFile.path));
 
         print('Stop Recording');
       } catch (e) {
@@ -227,7 +228,7 @@ class _SOSPageState extends State<SOSPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Confirmation"),
-        content: const Text("Are you sure you want to cancel and upload?"),
+        content: const Text("Are you sure you want to exit and abort?"),
         actions: [
           TextButton(
             onPressed: () {
@@ -236,18 +237,14 @@ class _SOSPageState extends State<SOSPage> {
             child: const Text("Cancel"),
           ),
           TextButton(
-            onPressed: () async {
-              await _stopAndSaveVideo();
-              Navigator.pop(context); // Close the dialog
-              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const Home()), (route) => false);
-              print("cancelled and uploaded");
-              },
-            child: const Text("Upload"),
+          onPressed: () {
+            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const Home()), (route) => false);
+          },
+          child: const Text('Exit & Abort')
           ),
-        ],
+        ]
       ),
     );
-
   }
 
   @override
@@ -364,7 +361,7 @@ class _SOSPageState extends State<SOSPage> {
                                         Center(
                                           child: ElevatedButton(
                                             style: ButtonStyle(
-                                              backgroundColor: MaterialStateProperty.all(Colors.blue),
+                                              backgroundColor: WidgetStateProperty.all(Colors.blue),
                                             ),
                                             onPressed: () async {
                                               await _stopAndSaveVideo();
@@ -381,7 +378,7 @@ class _SOSPageState extends State<SOSPage> {
                                         Center(
                                           child: ElevatedButton(
                                             style: ButtonStyle(
-                                              backgroundColor: MaterialStateProperty.all(Colors.red),
+                                              backgroundColor: WidgetStateProperty.all(Colors.red),
                                             ),
                                             onPressed: () {
                                               showDialog(
@@ -594,7 +591,7 @@ class _SOSAudioPageState extends State<SOSAudioPage> {
       Uint8List uint8List = Uint8List.fromList(audioBytes);
       String fileName = '${currentDate}_SOSAudioRecording_${userId}';
       // Upload file to Firebase Storage
-      String firebaseStoragePath = 'SOSAudioRecording/$userId/SOSAudio_$currentDate'; // Define path in Firebase Storage
+      String firebaseStoragePath = 'SOSAudioRecording/$userId/$fileName'; // Define path in Firebase Storage
       UploadTask uploadTask = storageRef.child(firebaseStoragePath).putData(uint8List, SettableMetadata(contentType: 'audio/mpeg'));
 
       // Wait for the upload to complete
@@ -752,8 +749,8 @@ class _SOSAudioPageState extends State<SOSAudioPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(Colors.blue),
-                  shape: MaterialStateProperty.all(
+                  backgroundColor: WidgetStateProperty.all(Colors.blue),
+                  shape: WidgetStateProperty.all(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -773,8 +770,8 @@ class _SOSAudioPageState extends State<SOSAudioPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(Colors.red),
-                  shape: MaterialStateProperty.all(
+                  backgroundColor: WidgetStateProperty.all(Colors.red),
+                  shape: WidgetStateProperty.all(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

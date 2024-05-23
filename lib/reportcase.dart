@@ -131,6 +131,22 @@ class _ReportCaseState extends State<ReportCase> {
               width: double.infinity,
               height: 200,
               fit: BoxFit.cover,
+              loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                if (loadingProgress == null) {
+                  return child;
+                } else {
+                  return SizedBox(
+                    height: 200,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                            : null,
+                      ),
+                    ),
+                  );
+                }
+              },
             )
                 : Container();
 
@@ -267,139 +283,149 @@ class _ReportCaseState extends State<ReportCase> {
                                         context: context,
                                         builder: (BuildContext context) {
                                           return Container(
+                                            height: 500,
                                             padding: const EdgeInsets.all(16.0),
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                ListTile(
-                                                  title: Center(
-                                                      child: Text(
-                                                        "$caseType",
-                                                        style: const TextStyle(
-                                                            fontSize: 30, fontWeight: FontWeight.bold),
-                                                      )
+                                            child: SingleChildScrollView(
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  ListTile(
+                                                    title: Center(
+                                                        child: Text(
+                                                          "$caseType",
+                                                          style: const TextStyle(
+                                                              fontSize: 30, fontWeight: FontWeight.bold),
+                                                        )
+                                                    ),
                                                   ),
-                                                ),
-                                                const SizedBox(height: 8.0),
-                                                const Text(
-                                                  'Description',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 15,
+                                                  const SizedBox(height: 8.0),
+                                                  const Text(
+                                                    'Description',
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 15,
+                                                    ),
                                                   ),
-                                                ),
-                                                Text(
-                                                  '$description',
-                                                  style: const TextStyle(fontSize: 20),
-                                                ),
-                                                const SizedBox(height: 8.0),
-                                                const Text(
-                                                  'Location',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 15,
+                                                  Text(
+                                                    '$description',
+                                                    style: const TextStyle(fontSize: 20),
                                                   ),
-                                                ),
-                                                FutureBuilder(
-                                                  future: getAddressFromCoordinates(latitude, longitude),
-                                                  builder: (context, AsyncSnapshot<String?> addressSnapshot) {
-                                                    if (addressSnapshot.connectionState == ConnectionState.waiting) {
-                                                      return const SizedBox.shrink(); // Return empty space while waiting for address
-                                                    }
-                                                    if (addressSnapshot.hasError || addressSnapshot.data == null) {
-                                                      return const SizedBox.shrink(); // Return empty space if there's an error or no address
-                                                    }
-                                                    return Text(
-                                                      addressSnapshot.data!,
-                                                      style: const TextStyle(fontSize: 20),
-                                                    );
-                                                  },
-                                                ),
-                                                const SizedBox(height: 8.0),
-                                                const Text(
-                                                  'Coordinate',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 15,
+                                                  const SizedBox(height: 8.0),
+                                                  const Text(
+                                                    'Location',
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 15,
+                                                    ),
                                                   ),
-                                                ),
-                                                GestureDetector(
-                                                  onTap: () async {
-                                                    String googleMapsUrl = "https://www.google.com/maps?q=$location";
-                                                    Uri link = Uri.parse(googleMapsUrl);
-                                                    if (await canLaunchUrl(link)) {
-                                                      await launchUrl(link);
-                                                    } else {
-                                                      throw 'Could not launch $googleMapsUrl';
-                                                    }
-                                                  },
-                                                  child: Row(
-                                                    children: [
-                                                      Text(
-                                                        location,
+                                                  FutureBuilder(
+                                                    future: getAddressFromCoordinates(latitude, longitude),
+                                                    builder: (context, AsyncSnapshot<String?> addressSnapshot) {
+                                                      if (addressSnapshot.connectionState == ConnectionState.waiting) {
+                                                        return const SizedBox.shrink(); // Return empty space while waiting for address
+                                                      }
+                                                      if (addressSnapshot.hasError || addressSnapshot.data == null) {
+                                                        return const SizedBox.shrink(); // Return empty space if there's an error or no address
+                                                      }
+                                                      return Text(
+                                                        addressSnapshot.data!,
                                                         style: const TextStyle(fontSize: 20),
+                                                      );
+                                                    },
+                                                  ),
+                                                  const SizedBox(height: 8.0),
+                                                  const Text(
+                                                    'Coordinate',
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 15,
+                                                    ),
+                                                  ),
+                                                  GestureDetector(
+                                                    onTap: () async {
+                                                      String googleMapsUrl = "https://www.google.com/maps?q=@$location,17z";
+                                                      Uri link = Uri.parse(googleMapsUrl);
+                                                      if (await canLaunchUrl(link)) {
+                                                        await launchUrl(link);
+                                                      } else {
+                                                        throw 'Could not launch $googleMapsUrl';
+                                                      }
+                                                    },
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.green,
+                                                        borderRadius: BorderRadius.circular(10.0),
                                                       ),
-                                                      const Icon(Icons.location_on), // Add your desired icon here
-                                                    ],
+                                                      padding: const EdgeInsets.all(4),
+                                                      child: Row(
+                                                        children: [
+                                                          Text(
+                                                            location,
+                                                            style: const TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                                                          ),
+                                                          const Icon(Icons.location_on, color: Colors.white,), // Add your desired icon here
+                                                        ],
+                                                      ),
+                                                    ),
                                                   ),
-                                                ),
-                                                const SizedBox(height: 8.0),
-                                                const Text(
-                                                  'Date & Time',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 15,
+                                                  const SizedBox(height: 8.0),
+                                                  const Text(
+                                                    'Date & Time',
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 15,
+                                                    ),
                                                   ),
-                                                ),
-                                                Text(
-                                                  '$formattedDateTime',
-                                                  style: const TextStyle(fontSize: 20),
-                                                ),
-                                                const SizedBox(height: 8.0),
-                                                const Text(
-                                                  'Evidence',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 15,
+                                                  Text(
+                                                    '$formattedDateTime',
+                                                    style: const TextStyle(fontSize: 20),
                                                   ),
-                                                ),
-                                                GestureDetector(
-                                                  onTap: () async {
-                                                    if (mediaFileName!.endsWith('mp4')) {
-                                                      // Import the video_player package
-                                                      Uri uri = Uri.parse(imageUrl!);
-                                                      // Create a VideoPlayerController instance
-                                                      final videoPlayerController = VideoPlayerController.networkUrl(uri);
-
-                                                      // Initialize the controller and display a loading indicator while it loads
-                                                      await videoPlayerController.initialize().then((_) {
-                                                        // Once initialized, show the video in a dialog
-                                                        _showVideoDialog(context, videoPlayerController);
-                                                      });
-                                                    } else if (mediaFileName.endsWith('jpg')) {
-                                                      _showImageDialog(context, imageUrl!);
-                                                    } else {
-                                                      // Handle other file types (optional)
-                                                      print('Unsupported file type: $mediaFileName');
-                                                    }
-                                                  },
-
-                                                  child: imageWidget,
-                                                ),
-                                                const SizedBox(height: 8.0),
-                                                const Text(
-                                                  'SHA256 Hash: ',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 15,
+                                                  const SizedBox(height: 8.0),
+                                                  const Text(
+                                                    'Evidence',
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 15,
+                                                    ),
                                                   ),
-                                                ),
-                                                Text(
-                                                  '$hashkey',
-                                                  style: const TextStyle(fontSize: 20),
-                                                ),
-                                              ],
+                                                  GestureDetector(
+                                                    onTap: () async {
+                                                      if (mediaFileName!.endsWith('mp4')) {
+                                                        // Import the video_player package
+                                                        Uri uri = Uri.parse(imageUrl!);
+                                                        // Create a VideoPlayerController instance
+                                                        final videoPlayerController = VideoPlayerController.networkUrl(uri);
+                                              
+                                                        // Initialize the controller and display a loading indicator while it loads
+                                                        await videoPlayerController.initialize().then((_) {
+                                                          // Once initialized, show the video in a dialog
+                                                          _showVideoDialog(context, videoPlayerController);
+                                                        });
+                                                      } else if (mediaFileName.endsWith('jpg')) {
+                                                        _showImageDialog(context, imageUrl!);
+                                                      } else {
+                                                        // Handle other file types (optional)
+                                                        print('Unsupported file type: $mediaFileName');
+                                                      }
+                                                    },
+                                              
+                                                    child: imageWidget,
+                                                  ),
+                                                  const SizedBox(height: 8.0),
+                                                  const Text(
+                                                    'SHA256 Hash: ',
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 15,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    '$hashkey',
+                                                    style: const TextStyle(fontSize: 20),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           );
                                         },

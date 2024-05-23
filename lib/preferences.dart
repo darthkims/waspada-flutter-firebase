@@ -9,7 +9,7 @@ class PreferencesPage extends StatefulWidget {
 }
 
 class _PreferencesPageState extends State<PreferencesPage> {
-  int distanceAlert = 0; // Default value
+  int distanceAlert = 1; // Default value
   final TextEditingController _controller = TextEditingController();
 
   Future<void> _setDistanceAlert(int distance) async {
@@ -119,10 +119,10 @@ class _PreferencesPageState extends State<PreferencesPage> {
                 const SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: _updateDistanceAlert,
-                  child: const Text('Save', style: TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                   ),
+                  child: const Text('Save', style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),

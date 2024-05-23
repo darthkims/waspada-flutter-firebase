@@ -54,8 +54,8 @@ class SettingsPage extends StatelessWidget {
               const Divider(), // Add a divider between menu items
               ElevatedButton(
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(const Color(0xFF6798F8)),
-                  shape: MaterialStateProperty.all(
+                  backgroundColor: WidgetStateProperty.all(const Color(0xFF6798F8)),
+                  shape: WidgetStateProperty.all(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -198,8 +198,8 @@ class ChangeEmail extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(const Color(0xFF6798F8)),
-                shape: MaterialStateProperty.all(
+                backgroundColor: WidgetStateProperty.all(const Color(0xFF6798F8)),
+                shape: WidgetStateProperty.all(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -262,10 +262,22 @@ class ChangeEmail extends StatelessWidget {
                     print("$e");
                 }
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter a new email.'),
-                    ),
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('Enter new email'),
+                          content: const Text('Please fill in new email'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        );
+                      }
                   );
                 }
               },
@@ -341,8 +353,8 @@ class ChangePassword extends StatelessWidget {
               const SizedBox(height: 30,),
               ElevatedButton(
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(const Color(0xFF6798F8)),
-                    shape: MaterialStateProperty.all(
+                    backgroundColor: WidgetStateProperty.all(const Color(0xFF6798F8)),
+                    shape: WidgetStateProperty.all(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -380,6 +392,7 @@ class ChangePassword extends StatelessWidget {
                           context: context,
                           builder: (BuildContext context) {
                             return AlertDialog(
+                              title: Text('Enter current/new password'),
                               content: const Text('Please fill in current and new password'),
                               actions: [
                                 TextButton(

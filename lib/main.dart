@@ -8,6 +8,7 @@ import 'package:fypppp/firestore/fcm_notification.dart';
 import 'package:fypppp/home.dart';
 import 'package:fypppp/notifications.dart';
 import 'package:fypppp/startup.dart';
+import 'package:in_app_notification/in_app_notification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -53,38 +54,40 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      routes: {
-        NotificationScreen.route: (context) {
-          // Retrieve the message from the arguments
-          final RemoteMessage message = ModalRoute.of(context)!.settings.arguments as RemoteMessage;
-          return NotificationScreen(message: message);
+    return InAppNotification(
+      child: MaterialApp(
+        routes: {
+          NotificationScreen.route: (context) {
+            // Retrieve the message from the arguments
+            final RemoteMessage message = ModalRoute.of(context)!.settings.arguments as RemoteMessage;
+            return NotificationScreen(message: message);
+          },
+          // Add other routes if needed
         },
-        // Add other routes if needed
-      },
-      home: FutureBuilder<bool>(
-        future: _isLoggedIn,
-        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            // Still waiting for authentication state to be determined
-            return Container(
-              color: Colors.white,
-              child: Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+        home: FutureBuilder<bool>(
+          future: _isLoggedIn,
+          builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              // Still waiting for authentication state to be determined
+              return Container(
+                color: Colors.white,
+                child: Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                  ),
                 ),
-              ),
-            );
-          } else {
-            // Authentication state has been determined
-            if (snapshot.data == true) {
-              // If logged in, navigate to the Home screen
-              return Home();
+              );
+            } else {
+              // Authentication state has been determined
+              if (snapshot.data == true) {
+                // If logged in, navigate to the Home screen
+                return Home();
+              }
+              // If not logged in, stay on the Splash screen
+              return StartUpScreen();
             }
-            // If not logged in, stay on the Splash screen
-            return StartUpScreen();
-          }
-        },
+          },
+        ),
       ),
     );
   }

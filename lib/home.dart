@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:fypppp/casesaround.dart';
 import 'package:fypppp/circles.dart';
+import 'package:fypppp/inappnotification.dart';
 import 'package:fypppp/navbar.dart';
 import 'package:fypppp/offlinehome.dart';
 import 'package:fypppp/profile.dart';
@@ -16,8 +17,9 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fypppp/reportcase.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:async';
-
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:video_player/video_player.dart';
+import 'package:in_app_notification/in_app_notification.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -35,6 +37,7 @@ class _HomeState extends State<Home> {
   List<Map<String, dynamic>> _markerInfoList = [];
   late StreamSubscription<Position> _positionStreamSubscription;
   bool _shouldCenterMap = true; // Flag to determine if the map should be initially centered
+  final CasesAround casesAround = CasesAround();
 
   @override
   void initState() {
@@ -154,6 +157,8 @@ class _HomeState extends State<Home> {
           String locationString = data['location'] as String;
           Timestamp timestamp = data['timeStamp'];
           String caseType = data['caseType'];
+          String url = data['mediaUrl'];
+          String mediaFileName = data['mediaFileName'];
           String? description;
           try {
             description = data['description'] as String?;
@@ -172,8 +177,9 @@ class _HomeState extends State<Home> {
           String formattedDate = DateFormat('dd MMMM yyyy').format(timestamp.toDate());
           String formattedTime = DateFormat('hh:mm a').format(timestamp.toDate());
 
+          calculateDistance(latitude, longitude, formattedDate, caseType, formattedTime, url, mediaFileName, description);
           // Call _addDynamicMarker with the location
-          _addDynamicMarker(latitude, longitude, formattedDate, caseType, description, formattedTime);
+          _addDynamicMarker(latitude, longitude, formattedDate, caseType, description, formattedTime, url, mediaFileName);
         }
       });
     } catch (e) {
@@ -182,7 +188,40 @@ class _HomeState extends State<Home> {
     }
   }
 
-  void _addDynamicMarker(double latitude, double longitude, String date, String caseType, String description, String time) {
+  Future<void> calculateDistance(double latitude, double longitude, String date, String caseType, String time, String url, String mediaFileName, String description) async {
+    LatLng point = LatLng(latitude, longitude);
+    final prefs = await SharedPreferences.getInstance();
+    final int distanceAlert = prefs.getInt('distanceAlert') ?? 1;
+    print('Distance Alert: $distanceAlert');
+    int _duration = 10000;
+    double _minHeight = 80;
+    double distance = Geolocator.distanceBetween(
+      _currentLocation.latitude,
+      _currentLocation.longitude,
+      latitude,
+      longitude,
+    )/1000;
+    print('Distance: $distance');
+    if (distance < distanceAlert) {
+      try {
+        InAppNotification.show(
+          child: NotificationBody(
+            caseType: caseType,
+            minHeight: _minHeight,
+          ),
+          context: context,
+          onTap: () {
+            mapController.move(point, 19.0);
+          },
+          duration: Duration(milliseconds: _duration),
+        );
+      } catch (e) {
+        print('Error calculate distance:  $e');
+      }
+    };
+  }
+
+  void _addDynamicMarker(double latitude, double longitude, String date, String caseType, String description, String time, String url, String mediaFileName) {
     Future<String?> getAddressFromCoordinates(double latitude, double longitude) async {
       try {
         List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
@@ -229,18 +268,55 @@ class _HomeState extends State<Home> {
                 builder: (BuildContext context) {
                   return AlertDialog(
                     title: Text(caseType, style: const TextStyle(fontWeight: FontWeight.bold),),
-                    content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min, // Ensure the column takes minimum space
-                      children: [
-                        Text('Description: $description'),
-                        const SizedBox(height: 8), // Add some spacing between text items
-                        Text('Address: $address'),
-                        const SizedBox(height: 8), // Add some spacing between text items
-                        Text('Date: $date'),
-                        const SizedBox(height: 8), // Add some spacing between text items
-                        Text('Time: $time'),
-                      ],
+                    content: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min, // Ensure the column takes minimum space
+                        children: [
+                          if (mediaFileName.endsWith('jpg'))
+                            Image.network(
+                              url,
+                              loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                                if (loadingProgress == null) {
+                                  return child;
+                                } else {
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      value: loadingProgress.expectedTotalBytes != null
+                                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                          : null,
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          if (mediaFileName.endsWith('mp4'))
+                            GestureDetector(
+                              onTap: () async {
+                                  Uri uri = Uri.parse(url);
+                                  // Create a VideoPlayerController instance
+                                  final videoPlayerController = VideoPlayerController.networkUrl(uri);
+
+                                  // Initialize the controller and display a loading indicator while it loads
+                                  await videoPlayerController.initialize().then((_) {
+                                    // Once initialized, show the video in a dialog
+                                    _showVideoDialog(context, videoPlayerController);
+                                  });
+                              },
+                              child: SizedBox(
+                                child: Image.asset('assets/images/thumbnailvideo_horizontal.png'),
+                              ),
+                            ),
+                          const SizedBox(height: 8), // Add some spacing between text items
+                          Text('Description: $description'),
+                          const SizedBox(height: 8), // Add some spacing between text items
+                          Text('Address: $address'),
+                          const SizedBox(height: 8), // Add some spacing between text items
+                          Text('Date: $date'),
+                          const SizedBox(height: 8), // Add some spacing between text items
+                          Text('Time: $time'),
+                        ],
+                      ),
                     ),
                     actions: <Widget>[
                       TextButton(
@@ -524,5 +600,66 @@ class _HomeState extends State<Home> {
       ),
       bottomNavigationBar: CustomNavigationBar(currentPageIndex: currentPageIndex, onItemTapped: onItemTapped)
     );
+  }
+}
+
+void _showVideoDialog(BuildContext context, VideoPlayerController videoPlayerController) async {
+  try {
+
+    // Initialize video player
+    await videoPlayerController.initialize();
+    videoPlayerController.setLooping(true);
+    // Show video player dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Stack(
+            children: <Widget>[
+              AspectRatio(
+                aspectRatio: videoPlayerController.value.aspectRatio,
+                child: VideoPlayer(videoPlayerController),
+              ),
+              Positioned(
+                top: 0.0,
+                right: 0.0,
+                child: GestureDetector(
+                  onTap: () {
+                    if (videoPlayerController.value.isPlaying) {
+                      videoPlayerController.pause();
+                    } else {
+                      videoPlayerController.play();
+                    }
+                  },
+                  child: Row(
+                    children: [
+                      Icon(
+                        videoPlayerController.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                        color: Colors.white,
+                        size: 36.0,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close,),
+                        color: Colors.white,
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          videoPlayerController.dispose();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    // Start playback after showing dialog
+    videoPlayerController.play();
+  } catch (error) {
+    // Handle initialization error (optional)
+    print('Error initializing video: $error');
   }
 }

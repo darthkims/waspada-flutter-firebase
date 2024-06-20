@@ -364,6 +364,42 @@ class _HomeState extends State<Home> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        // Filter _markerInfoList based on distance condition
+        List<Map<String, dynamic>> filteredList = _markerInfoList.where((data) {
+          double latitude = data['latitude'];
+          double longitude = data['longitude'];
+          double distance = Geolocator.distanceBetween(
+            _currentLocation.latitude,
+            _currentLocation.longitude,
+            latitude,
+            longitude,
+          ) / 1000; // Convert to kilometers
+
+          return distance < distanceAlert; // Only include if distance is less than distanceAlert
+        }).toList();
+
+        if (filteredList.isEmpty) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            title: const Text('Reported Cases', style: TextStyle(fontWeight: FontWeight.bold)),
+            content: Container(
+              height: 100, // Adjust height as needed
+              width: 200,
+              child: Center(
+                child: Text('There are no reported cases within ${distanceAlert.toStringAsFixed(2)} KM. Change the distance alert on Settings/Preferences page to view more cases.'),
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Close'),
+              ),
+            ],
+          );
+        }
+
         return AlertDialog(
           backgroundColor: Colors.white,
           title: const Text('Reported Cases', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -375,16 +411,13 @@ class _HomeState extends State<Home> {
             height: 300, // Adjust height as needed
             width: 400,
             child: SingleChildScrollView(
-              // Wrap the Column with Scrollbar
               child: Scrollbar(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: _markerInfoList.map((data) {
-                    bool isKm = true;
-                    double shownDistance = 0.0;
+                  children: filteredList.map((data) {
                     double latitude = data['latitude'];
                     double longitude = data['longitude'];
-                    String caseType = data['caseType']; // Access case type
+                    String caseType = data['caseType'];
                     String description = data['description'];
                     double distance = Geolocator.distanceBetween(
                       _currentLocation.latitude,
@@ -392,32 +425,40 @@ class _HomeState extends State<Home> {
                       latitude,
                       longitude,
                     ) / 1000; // Convert to kilometers
-                    if (distance<1) {
+
+                    bool isKm = true;
+                    double shownDistance = distance;
+                    if (distance < 1) {
                       shownDistance = distance * 1000;
                       isKm = false;
-                    } else {
-                      shownDistance = distance;
                     }
+
                     LatLng point = LatLng(latitude, longitude);
                     return Container(
                       decoration: BoxDecoration(
-                        color: distance < distanceAlert ? Colors.red : Colors.white,
+                        color: Colors.blue,
                         borderRadius: BorderRadius.circular(10.0),
-                    ),
+                      ),
                       margin: const EdgeInsets.all(5),
                       child: ListTile(
                         title: Text(
-                            caseType,
-                            style: TextStyle(color: distance < distanceAlert ? Colors.white : Colors.black, fontWeight: distance < distanceAlert ? FontWeight.bold : FontWeight.normal)
+                          caseType,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: distance < distanceAlert ? FontWeight.bold : FontWeight.normal,
+                          ),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(description), // Display case type
+                            Text(
+                              description,
+                              style: TextStyle(color: Colors.white,),
+                            ),
                             Text(
                               'Distance: ${isKm ? '${shownDistance.toStringAsFixed(2)} KM' : '${shownDistance.toStringAsFixed(2)} meter'}',
+                              style: TextStyle(color: Colors.white,),
                             ),
-
                           ],
                         ),
                         onTap: () {

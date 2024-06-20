@@ -498,7 +498,7 @@ class _ReportCaseState extends State<ReportCase> {
                         IconButton(
                           icon: const Icon(Icons.flag_outlined),
                           onPressed: () async {
-                            await _firestoreFetcher.toggleFlagReport(documentId, user.uid);
+                            await _firestoreFetcher.toggleFlagReport(documentId, user.uid, context);
                           },
                         ),
                         StreamBuilder<DocumentSnapshot>(

@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:native_exif/native_exif.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -207,7 +208,7 @@ class FirestoreFetcher {
     }
   }
 
-  Future<void> toggleFlagReport(String documentId, String currentUserUid) async {
+  Future<void> toggleFlagReport(String documentId, String currentUserUid, BuildContext context) async {
     try {
       // Check if the user has already liked the report
       final flagReports = await FirebaseFirestore.instance
@@ -237,7 +238,26 @@ class FirestoreFetcher {
       await FirebaseFirestore.instance.collection('userFlags').doc(currentUserUid).set({
         'flagReports': FieldValue.arrayUnion([documentId]),
       }, SetOptions(merge: true));
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Thanks for reporting!"),
+              content: const Text("Action will be taken to false, hateful and fake report.",
+                style: TextStyle(fontSize: 15),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Close'),
+                ),
+              ],
+            );
 
+          },
+        );
       print('Like incremented successfully!');
     } catch (e) {
       print('Error toggling like: $e');

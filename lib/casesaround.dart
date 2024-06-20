@@ -710,13 +710,36 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                   return const Text('0', style: TextStyle(fontSize: 15,),);
                                 }
                                 final flagsCount = snapshot.data!['flagsCount'] ?? 0;
+                                if (flagsCount >= 5) {
+                                  // showDialog(
+                                  //   context: context,
+                                  //   builder: (BuildContext context) {
+                                  //     return AlertDialog(
+                                  //       title: const Text("Thanks for reporting!"),
+                                  //       content: const Text("The report have been found suspicious by community and deleted.",
+                                  //         style: TextStyle(fontSize: 15),
+                                  //       ),
+                                  //       actions: <Widget>[
+                                  //         TextButton(
+                                  //           onPressed: () {
+                                  //             Navigator.of(context).pop();
+                                  //           },
+                                  //           child: const Text('Close'),
+                                  //         ),
+                                  //       ],
+                                  //     );
+                                  //
+                                  //   },
+                                  // );
+                                  _firestoreFetcher.deleteReport(documentId, mediaFileName);
+                                }
                                 return Text('$flagsCount', style: const TextStyle(fontSize: 15,),);
                               },
                             ),
                             IconButton(
                               icon: const Icon(Icons.flag_outlined),
                               onPressed: () async {
-                                await _firestoreFetcher.toggleFlagReport(documentId, user!.uid);
+                                await _firestoreFetcher.toggleFlagReport(documentId, user!.uid, context);
                               },
                             ),
                             GestureDetector(

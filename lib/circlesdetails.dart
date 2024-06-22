@@ -191,7 +191,7 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
                                   color: containsCheckIn || containsAudio || containsVideo
-                                      ? Colors.red // If the message contains "check in", make it red
+                                      ? Colors.grey // If the message contains "check in", make it red
                                       : isCurrentUserMessage
                                       ? const Color(0xFF66EEEE)// If the message doesn't contain "check in" and it's sent by the current user, make it blue
                                       : const Color(0xFFECFFB9), // If the message doesn't contain "check in" and it's not sent by the current user, make it white
@@ -369,7 +369,7 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                       // Apply bold style if the message contains "check in"
                                       Text(
                                         message,
-                                        style: containsCheckIn ? const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white) : const TextStyle(fontSize: 15),
+                                        style: containsCheckIn || containsAudio || containsVideo? const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white) : const TextStyle(fontSize: 15),
                                       ),
                                       Align(
                                           alignment: Alignment.centerRight,
@@ -463,62 +463,150 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
       isScrollControlled: true,
       context: context,
       builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(10),
-          height: MediaQuery.of(context).size.height * 0.8,
-          child: Column(
-            children: [
-              Text(
-                widget.circleName,
-                style: const TextStyle(fontSize: 25),
-              ),
-              const Divider(),
-              Expanded(
-                child: StreamBuilder(
-                  stream: FirebaseFirestore.instance.collection('circles').doc(widget.circleName).snapshots(),
-                  builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    var members = snapshot.data!.get('members') as List<dynamic>;
-                    return FutureBuilder(
-                      future: firestoreFetcher.convertIDtoUsername(members),
-                      builder: (BuildContext context, AsyncSnapshot<List<String>> usernameSnapshot) {
-                        if (!usernameSnapshot.hasData) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-                        List<String> usernames = usernameSnapshot.data!;
-                        return ListView.builder(
-                          controller: _scrollController,
-                          itemCount: usernames.length,
-                          itemBuilder: (context, index) {
-                            return Column(
-                              children: [
-                                const SizedBox(height: 10),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: const Color(0xFF66EEEE)),
-                                  ),
-                                  child: ListTile(
-                                    title: Text(usernames[index]),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
+        return StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance.collection('circles').doc(widget.circleName).snapshots(),
+          builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+            if (!snapshot.hasData) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            var circleData = snapshot.data!.data() as Map<String, dynamic>?;
+
+            // Check if circleData is not null and if 'members' array exists
+            var members = circleData != null ? (circleData['members'] as List<dynamic>?) : null;
+
+            return Container(
+              padding: const EdgeInsets.all(10),
+              height: MediaQuery.of(context).size.height * 0.8,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Text(
+                      "Circle Details",
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const Divider(),
+                    SizedBox(height: 8),
+                    // Example of accessing userid for each member in the array
+                    if (members != null) // Check if members is not null before using it
+                      ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: members.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          var userid = members[index]; // Adjust the field name as per your Firestore structure
+                          // Asynchronously fetch username from Firestore based on userid
+                          return FutureBuilder<String?>(
+                            future: firestoreFetcher.getUsernameFromSenderId(userid),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return CircularProgressIndicator(); // While fetching data, show a loading indicator
+                              } else if (snapshot.hasError) {
+                                return Text('Error: ${snapshot.error}');
+                              } else {
+                                String username = snapshot.data ?? 'Unknown'; // Default to 'Unknown' if username not found
+                                return Column(
+                                  children: [
+                                    const SizedBox(height: 10),
+                                    Container(
+                                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),),
+                                      child: ExpansionTile(
+                                        shape: Border.all(color: Colors.transparent),
+                                        title: Text(username),
+                                        iconColor: Colors.white,
+                                        textColor: Colors.white,
+                                        collapsedBackgroundColor: Colors.grey[300],
+                                        backgroundColor: Colors.blue,
+                                        trailing: Icon(Icons.expand_more),
+                                        children: [
+                                          FutureBuilder(
+                                            future: FirebaseFirestore.instance
+                                                .collection('circles')
+                                                .doc(widget.circleName)
+                                                .collection('checkin')
+                                                .where('senderId', isEqualTo: userid) // Adjust 'userId' to your actual field name
+                                                .orderBy('timestamp', descending: true)
+                                                .get(),
+                                            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                                return Center(child: CircularProgressIndicator());
+                                              }
+                                              if (snapshot.hasError) {
+                                                return Center(child: Text('Error: ${snapshot.error}'));
+                                              }
+                                              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                                                return Text('No check-ins found.');
+                                              }
+                                              return Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  border: Border.all(color: const Color(0xFF66EEEE)),
+                                                ),
+                                                height: 300,
+                                                child: ListView.builder(
+                                                  shrinkWrap: true,
+                                                  itemCount: snapshot.data!.docs.length,
+                                                  itemBuilder: (context, index) {
+
+                                                    var checkIn = snapshot.data!.docs[index];
+                                                    var coordinate = checkIn['location'] as GeoPoint;
+                                                    var timestamp = checkIn['timestamp'] as Timestamp;
+                                                    var dateTime = timestamp.toDate();
+                                                    String formattedDate = DateFormat('h:mm a, d MMMM yyyy').format(dateTime);
+
+                                                    // firestoreFetcher.getAddressFromCoordinates(coordinate.latitude, coordinate.longitude).then((address) {
+                                                    //   if (address != null) {
+                                                    //     print("Address: $address");
+                                                    //     // Use the address as needed, e.g., display in UI
+                                                    //   } else {
+                                                    //     print("Failed to fetch address.");
+                                                    //   }
+                                                    // });
+
+                                                    return Column(
+                                                      children: [
+                                                        ListTile(
+                                                          title: Text('Check-in at ${coordinate.latitude},${coordinate.longitude}'),
+                                                          subtitle: Text(formattedDate),
+                                                          trailing: IconButton(
+                                                              onPressed: () async {
+                                                                String googleMapsUrl = "https://www.google.com/maps?q=@${coordinate.latitude},${coordinate.longitude},17z"; // Replace with your pre-defined link
+                                                                Uri link = Uri.parse(googleMapsUrl);
+                                                                if (await canLaunchUrl(link)) {
+                                                                  await launchUrl(link);
+                                                                } else {
+                                                                  throw 'Could not launch $googleMapsUrl';
+                                                                }
+                                                              },
+                                                              icon: Icon(Icons.location_on))
+                                                        ),
+                                                        Divider(),
+                                                      ],
+                                                    );
+                                                  },
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }
+                            },
+                          );
+                        },
+                      ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
   }
+
 }
 
 void _showVideoDialog(BuildContext context, VideoPlayerController videoPlayerController) async {

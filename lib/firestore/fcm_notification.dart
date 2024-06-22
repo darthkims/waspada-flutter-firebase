@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:fypppp/notifications.dart';
+import 'package:fypppp/main.dart';
 
 Future<void> handleBackgroundMessage(RemoteMessage message) async {
   print("Handling background message:");
@@ -22,16 +22,16 @@ class MyMessagingService {
   MyMessagingService(this._navigatorKey);
 
   Future<void> handleMessage(RemoteMessage message) async {
-    if (message == null) return;
+    print('handle message clicked');
+    final route = message.data['route'];
+    final circleName = message.data['circleName']; // Assuming circleName is passed in the data
 
-    if (message.data['type'] == 'circles') {
-      _navigatorKey.currentState?.push(
-        MaterialPageRoute(
-          builder: (context) => NotificationScreen(message: message),
-        ),
-      );
+    if (route == '/circles') {
+      navigatorKey.currentState?.pushNamed('/circles');
+    } else if (route == '/circleDetails' && circleName != null) {
+      navigatorKey.currentState?.pushNamed('/circleDetails/$circleName');
     }
-
+    print(message.data);
   }
 
   Future<void> initPushNotification() async {
@@ -40,10 +40,12 @@ class MyMessagingService {
       badge: true,
       sound: true,
     );
-    FirebaseMessaging.instance.getInitialMessage();
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      await handleMessage(message);
-    });
+    final RemoteMessage? initMessage = await FirebaseMessaging.instance.getInitialMessage();
+
+    if (initMessage != null) {
+      handleMessage(initMessage);
+    }
+    FirebaseMessaging.onMessageOpenedApp.listen((handleMessage));
     FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
   }
 

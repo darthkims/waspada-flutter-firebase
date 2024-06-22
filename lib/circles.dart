@@ -150,8 +150,8 @@ class _CirclesState extends State<Circles> {
                       ? const SizedBox() // If isDeleting is true, display an empty SizedBox
                       : ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Colors.green),
-                      shape: MaterialStateProperty.all(
+                      backgroundColor: WidgetStateProperty.all(Colors.green),
+                      shape: WidgetStateProperty.all(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(5),
                         ),
@@ -183,8 +183,8 @@ class _CirclesState extends State<Circles> {
                   const SizedBox(width: 20,),
                   ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Colors.green),
-                      shape: MaterialStateProperty.all(
+                      backgroundColor: WidgetStateProperty.all(Colors.green),
+                      shape: WidgetStateProperty.all(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(5),
                         ),
@@ -397,6 +397,12 @@ class _CirclesState extends State<Circles> {
                                             FirebaseFirestore.instance.collection('circles').doc(circleName).collection('messages').add({
                                               'senderId': senderId,
                                               'message': "CHECK IN REPORT: $location",
+                                              'location' : coordinate,
+                                              'timestamp': Timestamp.now(),
+                                            });
+
+                                            FirebaseFirestore.instance.collection('circles').doc(circleName).collection('checkin').add({
+                                              'senderId': senderId,
                                               'location' : coordinate,
                                               'timestamp': Timestamp.now(),
                                             });

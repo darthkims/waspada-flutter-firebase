@@ -1,17 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:fypppp/circles.dart';
+import 'package:fypppp/circlesdetails.dart';
 import 'package:fypppp/firebase_options.dart';
 import 'package:fypppp/firestore/fcm_notification.dart';
 import 'package:fypppp/home.dart';
-import 'package:fypppp/notifications.dart';
+import 'package:fypppp/profile.dart';
 import 'package:fypppp/startup.dart';
-import 'package:in_app_notification/in_app_notification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-final navigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 
 void main() async {
@@ -48,22 +48,25 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _isLoggedIn = isLoggedIn();
-
-
   }
 
   @override
   Widget build(BuildContext context) {
-    return InAppNotification(
-      child: MaterialApp(
+    return MaterialApp(
+        navigatorKey: navigatorKey,
         routes: {
-          NotificationScreen.route: (context) {
-            // Retrieve the message from the arguments
-            final RemoteMessage message = ModalRoute.of(context)!.settings.arguments as RemoteMessage;
-            return NotificationScreen(message: message);
-          },
-          // Add other routes if needed
+          '/profile': (context) => ProfilePage(),
+          '/circles': (context) => Circles(),
         },
+      onGenerateRoute: (settings) {
+        if (settings.name?.startsWith('/circleDetails/') ?? false) {
+          final circleName = settings.name!.replaceFirst('/circleDetails/', '');
+          return MaterialPageRoute(
+            builder: (context) => CircleDetailsPage(circleName),
+          );
+        }
+        return null;
+      },
         home: FutureBuilder<bool>(
           future: _isLoggedIn,
           builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
@@ -88,8 +91,7 @@ class _MyAppState extends State<MyApp> {
             }
           },
         ),
-      ),
-    );
+      );
   }
 
   Future<bool> isLoggedIn() async {

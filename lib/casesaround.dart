@@ -621,6 +621,7 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                                           },
                                                           child: imageWidget,
                                                         ),
+                                                        const SizedBox(height: 8.0),
                                                         const Text(
                                                           'SHA256 Hash:',
                                                           style: TextStyle(

@@ -145,9 +145,18 @@ class _AddCircleState extends State<AddCircle> {
       "message": {
         "token": memberToken,
         "notification": {
-          "body": "You have been added to the circle!",
-          "title": "$circleName"
-        }
+          "body": circleName,
+          "title": "You have been added to the circle!",
+        },
+        "data": {
+          "route": "/circles",
+          "click_action": "FLUTTER_NOTIFICATION_CLICK"
+        },
+        "android": {
+          "notification": {
+            "click_action": "FLUTTER_NOTIFICATION_CLICK",
+          }
+        },
       }
     };
 
@@ -196,7 +205,7 @@ class _AddCircleState extends State<AddCircle> {
             TextField(
               controller: circleNameController,
               decoration: const InputDecoration(
-                labelText: 'Circle Name',
+                labelText: 'Enter Circle Name...',
               ),
             ),
             const SizedBox(height: 16.0),
@@ -207,7 +216,7 @@ class _AddCircleState extends State<AddCircle> {
                   child: TextField(
                     controller: usernameController,
                     decoration: const InputDecoration(
-                      labelText: 'Enter members username',
+                      labelText: 'Enter username...',
                     ),
                   ),
                 ),
@@ -220,8 +229,8 @@ class _AddCircleState extends State<AddCircle> {
                   ),
                   style: ButtonStyle(
                     backgroundColor:
-                    MaterialStateProperty.all(Colors.blue),
-                    shape: MaterialStateProperty.all(
+                    WidgetStateProperty.all(Colors.blue),
+                    shape: WidgetStateProperty.all(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -291,8 +300,8 @@ class _AddCircleState extends State<AddCircle> {
               ),
               style: ButtonStyle(
                 backgroundColor:
-                MaterialStateProperty.all(Colors.blue),
-                shape: MaterialStateProperty.all(
+                WidgetStateProperty.all(Colors.blue),
+                shape: WidgetStateProperty.all(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),

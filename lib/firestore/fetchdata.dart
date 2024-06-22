@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
 import 'package:native_exif/native_exif.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -395,7 +396,6 @@ class FirestoreFetcher {
         if (userSnapshot.exists) {
           // Extract the FCM token from the user document data
           String? memberToken = userSnapshot.data()?['fcmToken'];
-          String? username = userSnapshot.data()?['username'];
           if (memberToken != null) {
             // Prepare notification payload
             final message = {
@@ -407,7 +407,14 @@ class FirestoreFetcher {
                   "image": imageUrl // Add image URL here
                 },
                 "data": {
-                  "type": "circles", // Add the type key-value pair here
+                  "route": "/circleDetails",
+                  "circleName": circleName,
+                  "click_action": "FLUTTER_NOTIFICATION_CLICK"
+                },
+                "android": {
+                  "notification": {
+                    "click_action": "FLUTTER_NOTIFICATION_CLICK",
+                  }
                 },
               },
             };
@@ -499,7 +506,14 @@ class FirestoreFetcher {
                       "title": 'SOS RECORDING by $currentUsername',
                     },
                     "data": {
-                      "type": "sos"
+                      "route": "/circleDetails",
+                      "circleName": circleName,
+                      "click_action": "FLUTTER_NOTIFICATION_CLICK"
+                    },
+                    "android": {
+                      "notification": {
+                        "click_action": "FLUTTER_NOTIFICATION_CLICK",
+                      }
                     },
                   },
                 };
@@ -591,6 +605,14 @@ class FirestoreFetcher {
         return;
       }
 
+      // Send notification to each member of the circle
+      String? currentUsername;
+
+      // Retrieve current user's username
+      DocumentSnapshot<Map<String, dynamic>> currentUserSnapshot =
+      await FirebaseFirestore.instance.collection('users').doc(senderId).get();
+      currentUsername = currentUserSnapshot.data()?['username'];
+
       // Extract the members list from the circle document data
       List<dynamic> members = circleSnapshot.data()?['members'];
 
@@ -604,18 +626,24 @@ class FirestoreFetcher {
         if (userSnapshot.exists) {
           // Extract the FCM token from the user document data
           String? memberToken = userSnapshot.data()?['fcmToken'];
-          String? username = userSnapshot.data()?['username'];
           if (memberToken != null) {
             // Prepare notification payload
             final message = {
               "message": {
                 "token": memberToken,
                 "notification": {
-                  "body": "$username: $content",
+                  "body": "$currentUsername: $content",
                   "title": circleName,
                 },
                 "data": {
-                  "type": "circles" // Add the type key-value pair here
+                  "route": "/circleDetails",
+                  "circleName": "$circleName",
+                  "click_action": "FLUTTER_NOTIFICATION_CLICK"
+                },
+                "android": {
+                  "notification": {
+                    "click_action": "FLUTTER_NOTIFICATION_CLICK",
+                  }
                 },
               },
             };
@@ -653,6 +681,31 @@ class FirestoreFetcher {
       }
     } catch (e) {
       print("Error occurred: $e");
+    }
+  }
+
+  Future<String?> getAddressFromCoordinates(double latitude, double longitude) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+      Placemark place = placemarks[0];
+
+      List<String?> addressParts = [
+        place.name,
+        place.thoroughfare,
+        place.subLocality,
+        place.locality,
+        place.postalCode,
+        place.administrativeArea
+      ];
+
+      // Filter out null values and join the non-null values with commas
+      String address = addressParts.where((part) => part != null && part.isNotEmpty).join(', ');
+      print('${place.name}, ${place.isoCountryCode},${place.country},${place.postalCode},${place.administrativeArea},${place.subAdministrativeArea},${place.locality},${place.subLocality}, ${place.thoroughfare}, ${place.subThoroughfare}');
+
+      return address;
+    } catch (e) {
+      print("Error getting address: $e");
+      return null;
     }
   }
 

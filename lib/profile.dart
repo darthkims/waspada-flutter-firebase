@@ -109,7 +109,7 @@ class _ProfilePageState extends State<ProfilePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Hello $name!', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),),
+              Text('Hello $name! 😊', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),),
               const SizedBox(height: 20,),
               const Divider(),
               ListTile(
@@ -473,8 +473,17 @@ class _ViewSOSAudioState extends State<ViewSOSAudio> {
               final String hashKey = data['hashKey'];
               final String location = data['location'] ?? 'No Location';
               List<String> locationParts = location.split(',');
-              double latitude = double.parse(locationParts[0]);
-              double longitude = double.parse(locationParts[1]);
+              double latitude = 0.0;
+              double longitude = 0.0;
+              if (locationParts.length >= 2) {
+                try {
+                  latitude = double.parse(locationParts[0].trim());
+                  longitude = double.parse(locationParts[1].trim());
+                } catch (e) {
+                  print('Error parsing latitude or longitude: $e');
+                  // Handle error, perhaps set default values or show an error message
+                }
+              }
 
               Future<String?> getAddressFromCoordinates(double latitude, double longitude) async {
                 List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);

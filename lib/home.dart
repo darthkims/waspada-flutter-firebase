@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:fypppp/casesaround.dart';
 import 'package:fypppp/circles.dart';
-import 'package:fypppp/inappnotification.dart';
 import 'package:fypppp/navbar.dart';
 import 'package:fypppp/offlinehome.dart';
 import 'package:fypppp/profile.dart';
@@ -19,7 +18,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
-import 'package:in_app_notification/in_app_notification.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -189,12 +187,12 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> calculateDistance(double latitude, double longitude, String date, String caseType, String time, String url, String mediaFileName, String description) async {
-    LatLng point = LatLng(latitude, longitude);
+    // LatLng point = LatLng(latitude, longitude);
     final prefs = await SharedPreferences.getInstance();
     final int distanceAlert = prefs.getInt('distanceAlert') ?? 1;
     print('Distance Alert: $distanceAlert');
-    int _duration = 10000;
-    double _minHeight = 80;
+    // int _duration = 10000;
+    // double _minHeight = 80;
     double distance = Geolocator.distanceBetween(
       _currentLocation.latitude,
       _currentLocation.longitude,
@@ -202,23 +200,23 @@ class _HomeState extends State<Home> {
       longitude,
     )/1000;
     print('Distance: $distance');
-    if (distance < distanceAlert) {
-      try {
-        InAppNotification.show(
-          child: NotificationBody(
-            caseType: caseType,
-            minHeight: _minHeight,
-          ),
-          context: context,
-          onTap: () {
-            mapController.move(point, 19.0);
-          },
-          duration: Duration(milliseconds: _duration),
-        );
-      } catch (e) {
-        print('Error calculate distance:  $e');
-      }
-    };
+    // if (distance < distanceAlert) {
+    //   try {
+    //     InAppNotification.show(
+    //       child: NotificationBody(
+    //         caseType: caseType,
+    //         minHeight: _minHeight,
+    //       ),
+    //       context: context,
+    //       onTap: () {
+    //         mapController.move(point, 19.0);
+    //       },
+    //       duration: Duration(milliseconds: _duration),
+    //     );
+    //   } catch (e) {
+    //     print('Error calculate distance:  $e');
+    //   }
+    // };
   }
 
   void _addDynamicMarker(double latitude, double longitude, String date, String caseType, String description, String time, String url, String mediaFileName) {
@@ -601,7 +599,7 @@ class _HomeState extends State<Home> {
             ),
           ),
           Positioned(
-            bottom: 200.0,
+            top: 100.0,
             right: 16.0,
             child: SizedBox(
               height: 60.0, // Adjust height and width as needed

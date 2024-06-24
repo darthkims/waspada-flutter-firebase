@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -181,6 +182,8 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                           containsAudio = fileName.toLowerCase().contains('audio');
                         }
 
+                        String username = "";
+
                         return Column(
                           crossAxisAlignment: isCurrentUserMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                           children: [
@@ -204,7 +207,7 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                         return const CircularProgressIndicator();
                                       } else {
                                         if (usernameSnapshot.hasData && usernameSnapshot.data != null) {
-                                          String username = usernameSnapshot.data!;
+                                          username = usernameSnapshot.data!;
                                           return Text(username, style: containsCheckIn ? const TextStyle(fontWeight: FontWeight.bold, color: Colors.white) : const TextStyle(fontWeight: FontWeight.bold),);
                                         } else {
                                           return const Text('Unknown User');
@@ -266,19 +269,63 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                       if (containsAudio)
                                         GestureDetector(
                                           onTap: () async {
+                                            await _audioPlayer.setSourceUrl(mediaUrl!);
+                                            Duration position = Duration.zero;
+                                            Duration? duration = await _audioPlayer.getDuration();
+                                            StreamSubscription<Duration> positionSubscription;
+
+                                            String formatDuration(Duration duration) {
+                                              String twoDigits(int n) => n.toString().padLeft(2, '0');
+                                              String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+                                              String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+                                              return "$twoDigitMinutes:$twoDigitSeconds";
+                                            }
                                             showDialog(
                                               context: context,
                                               builder: (BuildContext context) {
                                                 return StatefulBuilder(
                                                   builder: (context, setState) {
+                                                    // Listen to audio position updates
+                                                    positionSubscription = _audioPlayer.onPositionChanged.listen((newPosition) {
+                                                      setState(() {
+                                                        position = newPosition;
+                                                      });
+                                                    });
+
+                                                    _audioPlayer.setReleaseMode(ReleaseMode.loop);
+
                                                     return AlertDialog(
-                                                      title: const Text('Audio Player'),
-                                                      content: Text(time),
+                                                      title: Text("$username's SOS Recording"),
+                                                      content: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        mainAxisSize: MainAxisSize.min, // Ensure the column takes minimum space
+                                                        children: [
+                                                          Slider(
+                                                            value: position.inSeconds.toDouble(),
+                                                            min: 0,
+                                                            max: duration!.inSeconds.toDouble(),
+                                                            onChanged: (value) async {
+                                                              // Seek to the new position in the audio
+                                                              await _audioPlayer.seek(Duration(seconds: value.toInt()));
+                                                            },
+                                                          ),
+                                                          Padding(
+                                                              padding: EdgeInsets.symmetric(horizontal: 16),
+                                                            child: Row(
+                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                              children: [
+                                                                Text(formatDuration(position)),
+                                                                Text(formatDuration(duration-position)),
+                                                              ],
+                                                            ),
+                                                          )
+                                                        ],
+                                                      ),
                                                       actions: [
                                                         TextButton(
                                                           onPressed: () async {
                                                             if (!_isPlaying) {
-                                                              await _audioPlayer.setSourceUrl(mediaUrl!);
+                                                              await _audioPlayer.setSourceUrl(mediaUrl);
                                                               await _audioPlayer.resume();
                                                               setState(() {
                                                                 _isPlaying = true;
@@ -312,6 +359,7 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                                               _isPaused = false;
                                                             });
                                                             Navigator.of(context).pop(); // Close the dialog
+                                                            positionSubscription.cancel(); // Cancel the subscription when dialog is closed
                                                           },
                                                           child: const Text('Stop'),
                                                         ),

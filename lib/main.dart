@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:fypppp/casesaround.dart';
 import 'package:fypppp/circles.dart';
 import 'package:fypppp/circlesdetails.dart';
 import 'package:fypppp/firebase_options.dart';
@@ -55,7 +56,6 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
         navigatorKey: navigatorKey,
         routes: {
-          '/profile': (context) => ProfilePage(),
           '/circles': (context) => Circles(),
         },
       onGenerateRoute: (settings) {

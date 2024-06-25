@@ -76,6 +76,7 @@ dependencies:
   audioplayers: ^6.0.0
   flutter_image_compress: ^2.3.0
   in_app_notification: ^1.1.2
+  share_plus: ^9.0.0
 #  mapbox_gl:
 #    git:
 #      url: https://github.com/flutter-mapbox-gl/maps.git

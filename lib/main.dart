@@ -2,13 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
-import 'package:fypppp/casesaround.dart';
 import 'package:fypppp/circles.dart';
 import 'package:fypppp/circlesdetails.dart';
 import 'package:fypppp/firebase_options.dart';
 import 'package:fypppp/firestore/fcm_notification.dart';
 import 'package:fypppp/home.dart';
-import 'package:fypppp/profile.dart';
+import 'package:fypppp/sos.dart';
 import 'package:fypppp/startup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -57,6 +56,8 @@ class _MyAppState extends State<MyApp> {
         navigatorKey: navigatorKey,
         routes: {
           '/circles': (context) => Circles(),
+          '/panicvideo': (context) => SOSPage(),
+          '/panicaudio': (context) => SOSAudioPage(),
         },
       onGenerateRoute: (settings) {
         if (settings.name?.startsWith('/circleDetails/') ?? false) {

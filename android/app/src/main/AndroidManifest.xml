@@ -29,6 +29,17 @@
         android:label="Waspada"
         android:requestLegacyExternalStorage="true">
         <receiver
+            android:name=".PanicButton"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/panic_button_info" />
+        </receiver>
+        <receiver
             android:name=".OneTapWidget"
             android:exported="false">
             <intent-filter>
@@ -69,21 +80,26 @@
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
+            <meta-data
+                android:name="flutter_deeplinking_enabled"
+                android:value="true" />
 
-            <meta-data android:name="flutter_deeplinking_enabled" android:value="true" />
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http" android:host="www.waspada.com" />
+
+                <data
+                    android:host="www.waspada.com"
+                    android:scheme="http" />
                 <data android:scheme="https" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="FLUTTER_NOTIFICATION_CLICK" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

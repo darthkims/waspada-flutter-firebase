@@ -7,6 +7,7 @@ import 'package:fypppp/circlesdetails.dart';
 import 'package:fypppp/firebase_options.dart';
 import 'package:fypppp/firestore/fcm_notification.dart';
 import 'package:fypppp/home.dart';
+import 'package:fypppp/preview_case.dart';
 import 'package:fypppp/sos.dart';
 import 'package:fypppp/startup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -64,6 +65,11 @@ class _MyAppState extends State<MyApp> {
           final circleName = settings.name!.replaceFirst('/circleDetails/', '');
           return MaterialPageRoute(
             builder: (context) => CircleDetailsPage(circleName),
+          );
+        } else if (settings.name?.startsWith('/casePreview/') ?? false) {
+          final documentId = settings.name!.replaceFirst('/casePreview/', '');
+          return MaterialPageRoute(
+            builder: (context) => CasePreview(documentId: documentId),
           );
         }
         return null;

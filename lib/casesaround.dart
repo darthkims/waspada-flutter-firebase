@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fypppp/circles.dart';
 import 'package:fypppp/firestore/fetchdata.dart';
 import 'package:fypppp/home.dart';
@@ -638,6 +639,24 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                                   ),
                                                 );
                                               },
+                                            );
+                                          },
+                                        ),
+                                        const SizedBox(height: 10,),
+                                        ListTile(
+                                          leading: const Icon(
+                                            Icons.copy,
+                                            size: 36,
+                                          ),
+                                          title: Text("Copy Link",
+                                              style: TextStyle(fontSize: 20)
+                                          ),
+                                          onTap: (){
+                                            String link = "https://www.waspada.com/casePreview/$documentId";
+                                            Clipboard.setData(ClipboardData(text: link));
+                                            Navigator.pop(context);
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Link copied to clipboard!')),
                                             );
                                           },
                                         ),

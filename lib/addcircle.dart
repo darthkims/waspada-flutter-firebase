@@ -204,7 +204,10 @@ class _AddCircleState extends State<AddCircle> {
           children: [
             TextField(
               controller: circleNameController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
                 labelText: 'Enter Circle Name...',
               ),
             ),
@@ -215,18 +218,21 @@ class _AddCircleState extends State<AddCircle> {
                 Expanded(
                   child: TextField(
                     controller: usernameController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10)
+                      ),
                       labelText: 'Enter username...',
                     ),
                   ),
                 ),
                 const SizedBox(width: 8.0),
-                ElevatedButton(
+                IconButton(
                   onPressed: addMember,
-                  child: const Text(
-                    'Add member',
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  // child: const Text(
+                  //   'Add member',
+                  //   style: TextStyle(color: Colors.white),
+                  // ),
                   style: ButtonStyle(
                     backgroundColor:
                     WidgetStateProperty.all(Colors.blue),
@@ -235,7 +241,7 @@ class _AddCircleState extends State<AddCircle> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                  ),
+                  ), icon: Icon(Icons.add, color: Colors.white,),
                 ),
               ],
             ),
@@ -244,7 +250,7 @@ class _AddCircleState extends State<AddCircle> {
               'Members:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8.0),
+            const SizedBox(height: 10.0),
             // Display the list of members
             Expanded(
               child: ListView.builder(

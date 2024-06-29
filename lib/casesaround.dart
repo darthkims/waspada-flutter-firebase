@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fypppp/circles.dart';
 import 'package:fypppp/firestore/fetchdata.dart';
 import 'package:fypppp/home.dart';
@@ -10,6 +9,7 @@ import 'package:fypppp/profile.dart';
 import 'package:fypppp/sos.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
@@ -199,11 +199,11 @@ class _CasesAroundState extends State<CasesAround> {
                               padding: const EdgeInsets.all(16.0),
                               margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
                               decoration: BoxDecoration(
-                                color: highCases ? Colors.red : midCases ? const Color(0xFFFFF463) : const Color(0xFFF1E3C8),
+                                color: color,
                                 borderRadius: BorderRadius.circular(10.0),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
+                                    color: Colors.grey.withOpacity(0.8),
                                     spreadRadius: 1,
                                     blurRadius: 5,
                                     offset: const Offset(0, 3),
@@ -307,12 +307,36 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFECC9C9),
       appBar: AppBar(
-        title: Text(
-          widget.cityName,
-          style: TextStyle(color: widget.style, fontWeight: FontWeight.bold),
+        title: Row(
+          children: [
+            Text(
+              widget.cityName,
+              style: TextStyle(color: widget.style, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(width: 10,),
+            Container(
+              padding: EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: widget.color,
+                borderRadius: BorderRadius.circular(40),
+              ),
+              child: Text(
+                "Danger",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
+              ),
+            ),
+          ],
         ),
-        backgroundColor: widget.color,
+        actions: [
+          Row(
+            children: [
+
+            ],
+          )
+        ],
+        backgroundColor: Colors.blue,
         iconTheme: IconThemeData(color: widget.style),
 
       ),
@@ -412,12 +436,11 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                     : Container();
 
                 return Container(
-                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Add margin here
+                  margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 8.0), // Add margin here
                   child: Container(
                     padding: const EdgeInsets.all(16.0),
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
                     decoration: BoxDecoration(
-                      color: Colors.lightBlueAccent,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(10.0),
                       boxShadow: [
                         BoxShadow(
@@ -465,11 +488,11 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                         ListTile(
                                           leading: const Icon(
                                             Icons.download,
-                                            size: 36, // Adjust the size of the icon
+                                            size: 33, // Adjust the size of the icon
                                           ),
                                           title: const Text(
                                             'Download Image',
-                                            style: TextStyle(fontSize: 20), // Adjust the font size
+                                            style: TextStyle(fontSize: 17), // Adjust the font size
                                           ),
                                           onTap: () {
                                             _firestoreFetcher.downloadImage(imageUrl, mediaFileName);
@@ -480,11 +503,11 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                         ListTile(
                                           leading: const Icon(
                                             Icons.info_outline,
-                                            size: 36, // Adjust the size of the icon
+                                            size: 33, // Adjust the size of the icon
                                           ),
                                           title: const Text(
                                             'See details',
-                                            style: TextStyle(fontSize: 20), // Adjust the font size
+                                            style: TextStyle(fontSize: 17), // Adjust the font size
                                           ),
                                           onTap: () {
                                             Navigator.pop(context);
@@ -643,24 +666,6 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                           },
                                         ),
                                         const SizedBox(height: 10,),
-                                        ListTile(
-                                          leading: const Icon(
-                                            Icons.copy,
-                                            size: 36,
-                                          ),
-                                          title: Text("Copy Link",
-                                              style: TextStyle(fontSize: 20)
-                                          ),
-                                          onTap: (){
-                                            String link = "https://www.waspada.com/casePreview/$documentId";
-                                            Clipboard.setData(ClipboardData(text: link));
-                                            Navigator.pop(context);
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Link copied to clipboard!')),
-                                            );
-                                          },
-                                        ),
-                                        const SizedBox(height: 10,),
                                       ],
                                     );
                                   },
@@ -700,6 +705,7 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                           child: imageWidget,
                         ),
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             StreamBuilder<DocumentSnapshot>(
                               stream: FirebaseFirestore.instance.collection('reports').doc(documentId).snapshots(),
@@ -714,10 +720,25 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                 return Text('$likesCount', style: const TextStyle(fontSize: 15,),);
                               },
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.thumb_up_alt_outlined),
-                              onPressed: () async {
-                                await _firestoreFetcher.toggleLikeReport(documentId, user!.uid);
+                            StreamBuilder<DocumentSnapshot>(
+                              stream: FirebaseFirestore.instance.collection('userFlags').doc(user!.uid).snapshots(),
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData) {
+                                  return IconButton(
+                                    icon: const Icon(Icons.thumb_up_alt_outlined),
+                                    onPressed: () async {
+                                      await _firestoreFetcher.toggleLikeReport(documentId, user.uid);
+                                    },
+                                  );
+                                }
+                                final userLikes = snapshot.data!['likeReports'] ?? [];
+                                final hasLiked = userLikes.contains(documentId);
+                                return IconButton(
+                                  icon: Icon(hasLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined),
+                                  onPressed: () async {
+                                    await _firestoreFetcher.toggleLikeReport(documentId, user.uid);
+                                  },
+                                );
                               },
                             ),
                             StreamBuilder<DocumentSnapshot>(
@@ -731,36 +752,38 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                 }
                                 final flagsCount = snapshot.data!['flagsCount'] ?? 0;
                                 if (flagsCount >= 5) {
-                                  // showDialog(
-                                  //   context: context,
-                                  //   builder: (BuildContext context) {
-                                  //     return AlertDialog(
-                                  //       title: const Text("Thanks for reporting!"),
-                                  //       content: const Text("The report have been found suspicious by community and deleted.",
-                                  //         style: TextStyle(fontSize: 15),
-                                  //       ),
-                                  //       actions: <Widget>[
-                                  //         TextButton(
-                                  //           onPressed: () {
-                                  //             Navigator.of(context).pop();
-                                  //           },
-                                  //           child: const Text('Close'),
-                                  //         ),
-                                  //       ],
-                                  //     );
-                                  //
-                                  //   },
-                                  // );
                                   _firestoreFetcher.deleteReport(documentId, mediaFileName);
                                 }
                                 return Text('$flagsCount', style: const TextStyle(fontSize: 15,),);
                               },
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.flag_outlined),
-                              onPressed: () async {
-                                await _firestoreFetcher.toggleFlagReport(documentId, user!.uid, context);
+                            StreamBuilder<DocumentSnapshot>(
+                              stream: FirebaseFirestore.instance.collection('userFlags').doc(user.uid).snapshots(),
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData) {
+                                  return IconButton(
+                                    icon: const Icon(Icons.flag_outlined),
+                                    onPressed: () async {
+                                      await _firestoreFetcher.toggleFlagReport(documentId, user.uid, context);
+                                    },
+                                  );
+                                }
+                                final userFlags = snapshot.data!['flagReports'] ?? [];
+                                final hasFlagged = userFlags.contains(documentId);
+                                return IconButton(
+                                  icon: Icon(hasFlagged ? Icons.flag, : Icons.flag_outlined),
+                                  onPressed: () async {
+                                    await _firestoreFetcher.toggleFlagReport(documentId, user.uid, context);
+                                  },
+                                );
                               },
+                            ),
+                            IconButton(
+                                onPressed: () {
+                                  String link = "https://www.waspada.com/casePreview/$documentId";
+                                  Share.share(link);
+                                },
+                                icon: Icon(Icons.share)
                             ),
                             GestureDetector(
                               onTap: () async {
@@ -788,7 +811,7 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                   ],
                                 ),
                               ),
-                            )
+                            ),
                           ],
                         ),
                       ],

@@ -38,13 +38,6 @@ class _CirclesState extends State<Circles> {
     await DatabaseHelper.instance.getAllUsers();
   }
 
-
-  void _toggleDeleteMode() {
-    setState(() {
-      isDeleting = !isDeleting;
-    });
-  }
-
   Future<String> _getLocation() async {
     try {
       Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
@@ -63,8 +56,6 @@ class _CirclesState extends State<Circles> {
       throw Exception('Failed to get location: $e');
     }
   }
-
-
 
   void onItemTapped(int index) {
     setState(() {
@@ -135,6 +126,19 @@ class _CirclesState extends State<Circles> {
         backgroundColor: Colors.blue,
         iconTheme: const IconThemeData(color: Colors.white),
         automaticallyImplyLeading: false,
+        actions: [
+          Row(
+            children: [
+              IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context, MaterialPageRoute(builder: (context) => const AddCircle())
+                    );
+                  }, icon: const Icon(Icons.add_circle_outline, size: 35,)
+              ),
+            ],
+          )
+        ],
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -143,74 +147,6 @@ class _CirclesState extends State<Circles> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  isDeleting
-                      ? const SizedBox() // If isDeleting is true, display an empty SizedBox
-                      : ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(Colors.green),
-                      shape: WidgetStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AddCircle(),
-                        ),
-                      );
-                    },
-                    child: const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Create',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            fontSize: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(width: 20,),
-                  ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(Colors.green),
-                      shape: WidgetStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                    ),
-                    onPressed: () {
-                      _toggleDeleteMode(); // Toggle delete mode
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          isDeleting ? 'Done' : 'Manage',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            fontSize: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10,),
-              const Divider(),
               const SizedBox(height: 10,),
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance.collection('circles').snapshots(),
@@ -229,12 +165,19 @@ class _CirclesState extends State<Circles> {
                   }).toList();
 
                   if (userCircles!.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No circles available. Ask your friends to add or create a new one',
-                        style: TextStyle(fontSize: 20),
-                        textAlign: TextAlign.center,
-                      ),
+                    return const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Icon(Icons.sentiment_dissatisfied_sharp, size: 100,),
+                        Center(
+                          child: Text(
+                            'No circles available. Ask your friends to add or create a new one by clicking top right button!',
+                            style: TextStyle(fontSize: 20),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
                     );
                   }
 
@@ -287,6 +230,60 @@ class _CirclesState extends State<Circles> {
                                             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30),
                                           ),
                                         ),
+                                      ),
+                                      IconButton(
+                                          onPressed: () {
+                                            showModalBottomSheet(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  return Column(
+                                                    mainAxisSize: MainAxisSize.min, // Ensure the Column only occupies the space it needs
+                                                    children: [
+                                                      const SizedBox(height: 10,),
+                                                      ListTile(
+                                                        leading: const Icon(
+                                                          Icons.delete,
+                                                          size: 33, // Adjust the size of the icon
+                                                        ),
+                                                        title: const Text(
+                                                          'Delete Circle',
+                                                          style: TextStyle(fontSize: 17), // Adjust the font size
+                                                        ),
+                                                        onTap: () {
+                                                          showDialog(
+                                                            context: context,
+                                                            builder: (BuildContext context) {
+                                                              return AlertDialog(
+                                                                title: const Text("Confirm Delete"),
+                                                                content: const Text("Are you sure you want to delete this circle?"),
+                                                                actions: <Widget>[
+                                                                  TextButton(
+                                                                    onPressed: () {
+                                                                      Navigator.of(context).pop(); // Close the dialog
+                                                                    },
+                                                                    child: const Text("Cancel"),
+                                                                  ),
+                                                                  TextButton(
+                                                                    onPressed: () {
+                                                                      _firestoreFetcher.deleteCircle(circleName); // Delete circle
+                                                                      Navigator.of(context).pop();
+                                                                      Navigator.of(context).pop();
+                                                                    },
+                                                                    child: const Text("Delete"),
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            },
+                                                          );
+                                                        },
+                                                      ),
+                                                      const SizedBox(height: 10,),
+                                                    ],
+                                                  );
+                                                }
+                                            );
+                                          }, 
+                                          icon: const Icon(Icons.more_vert, color: Colors.white,)
                                       ),
                                       isDeleting
                                           ? (adminID == currentUserID
@@ -386,6 +383,11 @@ class _CirclesState extends State<Circles> {
                                       children: [
                                         GestureDetector(
                                           onTap: () async {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Sending Check In to Circle $circleName!'),
+                                              ),
+                                            );
                                             String location = await _getLocation();
                                             String userId = FirebaseAuth.instance.currentUser!.uid;
                                             String senderId = userId;
@@ -406,10 +408,12 @@ class _CirclesState extends State<Circles> {
                                               'location' : coordinate,
                                               'timestamp': Timestamp.now(),
                                             });
-
-                                            print('Add Location icon tapped');
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Check In has been sent to Circle $circleName!'),
+                                              ),
+                                            );
                                             await _firestoreFetcher.sendFCMNotification(senderId, circleName, location);
-                                            print('Location icon tapped');
                                           },
                                           child: const Column(
                                             children: [

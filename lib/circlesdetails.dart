@@ -280,95 +280,214 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                               String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
                                               return "$twoDigitMinutes:$twoDigitSeconds";
                                             }
-                                            showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return StatefulBuilder(
-                                                  builder: (context, setState) {
-                                                    // Listen to audio position updates
-                                                    positionSubscription = _audioPlayer.onPositionChanged.listen((newPosition) {
-                                                      setState(() {
-                                                        position = newPosition;
+                                            print(duration);
+                                            if (duration! > Duration(seconds: 1)){
+                                              showDialog(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return StatefulBuilder(
+                                                    builder:
+                                                        (context, setState) {
+                                                      // Listen to audio position updates
+                                                      positionSubscription =
+                                                          _audioPlayer
+                                                              .onPositionChanged
+                                                              .listen(
+                                                                  (newPosition) {
+                                                        setState(() {
+                                                          position =
+                                                              newPosition;
+                                                        });
                                                       });
-                                                    });
 
-                                                    _audioPlayer.setReleaseMode(ReleaseMode.loop);
+                                                      _audioPlayer
+                                                          .setReleaseMode(
+                                                              ReleaseMode.loop);
 
-                                                    return AlertDialog(
-                                                      title: Text("$username's SOS Recording"),
-                                                      content: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        mainAxisSize: MainAxisSize.min, // Ensure the column takes minimum space
-                                                        children: [
-                                                          Slider(
-                                                            value: position.inSeconds.toDouble(),
-                                                            min: 0,
-                                                            max: duration!.inSeconds.toDouble(),
-                                                            onChanged: (value) async {
-                                                              // Seek to the new position in the audio
-                                                              await _audioPlayer.seek(Duration(seconds: value.toInt()));
-                                                            },
-                                                          ),
-                                                          Padding(
-                                                              padding: EdgeInsets.symmetric(horizontal: 16),
-                                                            child: Row(
-                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                              children: [
-                                                                Text(formatDuration(position)),
-                                                                Text(formatDuration(duration-position)),
-                                                              ],
+                                                      return AlertDialog(
+                                                        title: Text(
+                                                            "$username's SOS Recording"),
+                                                        content: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          // Ensure the column takes minimum space
+                                                          children: [
+                                                            Slider(
+                                                              value: position
+                                                                  .inSeconds
+                                                                  .toDouble(),
+                                                              min: 0,
+                                                              max: duration
+                                                                  .inSeconds
+                                                                  .toDouble(),
+                                                              onChanged:
+                                                                  (value) async {
+                                                                // Seek to the new position in the audio
+                                                                await _audioPlayer
+                                                                    .seek(Duration(
+                                                                        seconds:
+                                                                            value.toInt()));
+                                                              },
                                                             ),
-                                                          )
+                                                            Padding(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          16),
+                                                              child: Row(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .spaceBetween,
+                                                                children: [
+                                                                  Text(formatDuration(
+                                                                      position)),
+                                                                  Text(formatDuration(
+                                                                      duration -
+                                                                          position)),
+                                                                ],
+                                                              ),
+                                                            )
+                                                          ],
+                                                        ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed:
+                                                                () async {
+                                                              if (!_isPlaying) {
+                                                                await _audioPlayer
+                                                                    .setSourceUrl(
+                                                                        mediaUrl);
+                                                                await _audioPlayer
+                                                                    .resume();
+                                                                setState(() {
+                                                                  _isPlaying =
+                                                                      true;
+                                                                  _isPaused =
+                                                                      false;
+                                                                });
+                                                              } else if (_isPaused) {
+                                                                await _audioPlayer
+                                                                    .resume();
+                                                                setState(() {
+                                                                  _isPaused =
+                                                                      false;
+                                                                });
+                                                              }
+                                                            },
+                                                            child: Text(
+                                                                _isPaused
+                                                                    ? 'Resume'
+                                                                    : 'Play'),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed:
+                                                                () async {
+                                                              if (_isPlaying &&
+                                                                  !_isPaused) {
+                                                                await _audioPlayer
+                                                                    .pause();
+                                                                setState(() {
+                                                                  _isPaused =
+                                                                      true;
+                                                                });
+                                                              }
+                                                            },
+                                                            child: const Text(
+                                                                'Pause'),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed:
+                                                                () async {
+                                                              await _audioPlayer
+                                                                  .stop();
+                                                              setState(() {
+                                                                _isPlaying =
+                                                                    false;
+                                                                _isPaused =
+                                                                    false;
+                                                              });
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(); // Close the dialog
+                                                              positionSubscription
+                                                                  .cancel(); // Cancel the subscription when dialog is closed
+                                                            },
+                                                            child: const Text(
+                                                                'Stop'),
+                                                          ),
                                                         ],
-                                                      ),
-                                                      actions: [
-                                                        TextButton(
-                                                          onPressed: () async {
-                                                            if (!_isPlaying) {
-                                                              await _audioPlayer.setSourceUrl(mediaUrl);
-                                                              await _audioPlayer.resume();
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                              );
+                                            } else {
+                                              await _audioPlayer.setSourceUrl(mediaUrl);
+                                              Duration? duration = await _audioPlayer.getDuration();
+                                              print(duration.toString());
+                                              showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  return StatefulBuilder(
+                                                    builder: (context, setState) {
+                                                      return AlertDialog(
+                                                        title: Text("$username's SOS Recording"),
+                                                        content: Row(
+                                                          children: [
+                                                          ],
+                                                        ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () async {
+                                                              if (!_isPlaying) {
+                                                                await _audioPlayer.setSourceUrl(mediaUrl);
+                                                                await _audioPlayer.resume();
+                                                                setState(() {
+                                                                  _isPlaying = true;
+                                                                  _isPaused = false;
+                                                                });
+                                                              } else if (_isPaused) {
+                                                                await _audioPlayer.resume();
+                                                                setState(() {
+                                                                  _isPaused = false;
+                                                                });
+                                                              }
+                                                            },
+                                                            child: Text(_isPaused ? 'Resume' : 'Play'),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () async {
+                                                              if (_isPlaying && !_isPaused) {
+                                                                await _audioPlayer.pause();
+                                                                setState(() {
+                                                                  _isPaused = true;
+                                                                });
+                                                              }
+                                                            },
+                                                            child: const Text('Pause'),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () async {
+                                                              await _audioPlayer.stop();
                                                               setState(() {
-                                                                _isPlaying = true;
+                                                                _isPlaying = false;
                                                                 _isPaused = false;
                                                               });
-                                                            } else if (_isPaused) {
-                                                              await _audioPlayer.resume();
-                                                              setState(() {
-                                                                _isPaused = false;
-                                                              });
-                                                            }
-                                                          },
-                                                          child: Text(_isPaused ? 'Resume' : 'Play'),
-                                                        ),
-                                                        TextButton(
-                                                          onPressed: () async {
-                                                            if (_isPlaying && !_isPaused) {
-                                                              await _audioPlayer.pause();
-                                                              setState(() {
-                                                                _isPaused = true;
-                                                              });
-                                                            }
-                                                          },
-                                                          child: const Text('Pause'),
-                                                        ),
-                                                        TextButton(
-                                                          onPressed: () async {
-                                                            await _audioPlayer.stop();
-                                                            setState(() {
-                                                              _isPlaying = false;
-                                                              _isPaused = false;
-                                                            });
-                                                            Navigator.of(context).pop(); // Close the dialog
-                                                            positionSubscription.cancel(); // Cancel the subscription when dialog is closed
-                                                          },
-                                                          child: const Text('Stop'),
-                                                        ),
-                                                      ],
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                            );
+                                                              Navigator.of(context).pop(); // Close the dialog
+                                                            },
+                                                            child: const Text('Stop'),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                              );
+                                            }
                                           },
                                           child: SizedBox(
                                             // height: 400, // Adjust the height as needed

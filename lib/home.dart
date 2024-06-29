@@ -528,6 +528,7 @@ class _HomeState extends State<Home> {
                   heroTag: UniqueKey(),
                   onPressed: _getLocation,
                   tooltip: 'Locate Me',
+                  backgroundColor: Colors.white,
                   child: const Icon(Icons.my_location),
                 ),
               ),
@@ -599,7 +600,7 @@ class _HomeState extends State<Home> {
             ),
           ),
           Positioned(
-            top: 100.0,
+            top: 150.0,
             right: 16.0,
             child: SizedBox(
               height: 60.0, // Adjust height and width as needed

@@ -363,7 +363,7 @@ class _AddReportState extends State<AddReport> {
                     },
                     icon: const Icon(Icons.upload),
                     label: const Text('Upload Evidence'),
-                    style: ButtonStyle(shape: MaterialStateProperty.all(
+                    style: ButtonStyle(shape: WidgetStateProperty.all(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -433,8 +433,8 @@ class _AddReportState extends State<AddReport> {
                     }
                   },
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(Colors.blue),
-                    shape: MaterialStateProperty.all(
+                    backgroundColor: WidgetStateProperty.all(Colors.blue),
+                    shape: WidgetStateProperty.all(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),

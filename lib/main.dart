@@ -21,7 +21,7 @@ void main() async {
     SystemUiOverlayStyle(
       systemNavigationBarColor: Colors.blue,
     ),
-  ); // Change navigation bar color here
+  );
   try {
     // Initialize Firebase
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

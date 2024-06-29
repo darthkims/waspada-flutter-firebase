@@ -30,7 +30,8 @@ class _ReportCaseState extends State<ReportCase> {
       iconTheme: const IconThemeData(color: Colors.white), // Set the leading icon color to white
         actions: [
           Row(
-            children: [IconButton(
+            children: [
+              IconButton(
                   icon: const Icon(Icons.add_circle_outline, size: 35,),
                   onPressed: () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const AddReport()));

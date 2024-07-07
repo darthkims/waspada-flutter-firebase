@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:fypppp/casesaround.dart';
@@ -36,6 +38,7 @@ class _HomeState extends State<Home> {
   late StreamSubscription<Position> _positionStreamSubscription;
   bool _shouldCenterMap = true; // Flag to determine if the map should be initially centered
   final CasesAround casesAround = CasesAround();
+  FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
 
   @override
   void initState() {
@@ -54,6 +57,7 @@ class _HomeState extends State<Home> {
       }
     });
     addDynamicMarkersFromFirestore();
+    getFCMToken();
   }
 
   @override
@@ -61,6 +65,14 @@ class _HomeState extends State<Home> {
     _positionStreamSubscription.cancel(); // Cancel the subscription to avoid memory leaks
     super.dispose();
   }
+
+  Future<void> getFCMToken() async {
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    await firebaseFirestore.collection('users').doc(currentUser?.uid).update({
+      'fcmToken': fcmToken,
+    });
+}
 
   Future<void> _getLocation() async {
     // Check if location permission is granted
@@ -400,7 +412,7 @@ class _HomeState extends State<Home> {
 
         return AlertDialog(
           backgroundColor: Colors.white,
-          title: const Text('Reported Cases', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: const Text('Reported Cases', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
           content: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10.0),
@@ -434,11 +446,12 @@ class _HomeState extends State<Home> {
                     LatLng point = LatLng(latitude, longitude);
                     return Container(
                       decoration: BoxDecoration(
-                        color: Colors.blue,
+                        color: Colors.red[200],
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       margin: const EdgeInsets.all(5),
                       child: ListTile(
+                        trailing: Icon(Icons.location_on, color: Colors.white,),
                         title: Text(
                           caseType,
                           style: TextStyle(
@@ -452,9 +465,11 @@ class _HomeState extends State<Home> {
                             Text(
                               description,
                               style: TextStyle(color: Colors.white,),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             Text(
-                              'Distance: ${isKm ? '${shownDistance.toStringAsFixed(2)} KM' : '${shownDistance.toStringAsFixed(2)} meter'}',
+                              '${isKm ? '${shownDistance.toStringAsFixed(2)} KM' : '${shownDistance.toStringAsFixed(2)} meter'}',
                               style: TextStyle(color: Colors.white,),
                             ),
                           ],
@@ -535,35 +550,25 @@ class _HomeState extends State<Home> {
             ),
           ),
           Positioned(
-            bottom: 120.0,
+            top: 150.0,
             right: 16.0,
             child: SizedBox(
               height: 60.0, // Adjust height and width as needed
               width: 60.0,
               child: FittedBox(
                 child: SpeedDial(
+                  direction: SpeedDialDirection.down,
                   animatedIcon: AnimatedIcons.menu_close,
                   animatedIconTheme: const IconThemeData(color: Colors.white),
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Colors.red[300],
                   overlayColor: Colors.black,
                   overlayOpacity: 0.5,
                   spaceBetweenChildren: 5,
                   spacing: 5,
                   children: [
                     SpeedDialChild(
-                      child: const Icon(Icons.offline_bolt_outlined, color: Colors.white,),
-                      backgroundColor: Colors.lightBlueAccent,
-                      label: 'Offline Mode',
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const OfflineHome())
-                        );
-                      },
-                    ),
-                    SpeedDialChild(
                       child: const Icon(Icons.settings, color: Colors.white,),
-                      backgroundColor: Colors.lightBlueAccent,
+                      backgroundColor: Colors.red[300],
                       label: 'Settings',
                       onTap: () {
                         Navigator.push(
@@ -574,7 +579,7 @@ class _HomeState extends State<Home> {
                     ),
                     SpeedDialChild(
                       child: const Icon(Icons.notifications, color: Colors.white,),
-                      backgroundColor: Colors.lightBlueAccent,
+                      backgroundColor: Colors.red[300],
                       label: 'Notifications',
                       onTap: () {
                         // Navigator.push(
@@ -585,7 +590,7 @@ class _HomeState extends State<Home> {
                     ),
                     SpeedDialChild(
                       child: const Icon(Icons.flag, color: Colors.white,),
-                      backgroundColor: Colors.lightBlueAccent,
+                      backgroundColor: Colors.red[300],
                       label: 'Report Case',
                       onTap: () {
                         Navigator.push(
@@ -600,7 +605,7 @@ class _HomeState extends State<Home> {
             ),
           ),
           Positioned(
-            top: 150.0,
+            bottom: 110.0,
             right: 16.0,
             child: SizedBox(
               height: 60.0, // Adjust height and width as needed

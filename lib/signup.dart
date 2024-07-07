@@ -215,7 +215,7 @@ class SignUpForm extends StatelessWidget {
                     if (signUpResult == null) {
                       Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => const Home())
+                          MaterialPageRoute(builder: (context) => const LoginForm())
                       );
                     } else {
                       // Display sign-up error to the user

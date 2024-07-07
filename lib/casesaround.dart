@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fypppp/casesaround_district.dart';
 import 'package:fypppp/circles.dart';
 import 'package:fypppp/firestore/fetchdata.dart';
 import 'package:fypppp/home.dart';
@@ -12,6 +13,8 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
+
+const Color theme = Colors.red;
 
 class CasesAround extends StatefulWidget {
   const CasesAround({super.key});
@@ -112,21 +115,27 @@ class _CasesAroundState extends State<CasesAround> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+        backgroundColor: Color(0xFFF4F3F2),
+        appBar: AppBar(
         title: const Text(
           'Cases Around',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: theme, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.blue,
-        iconTheme: const IconThemeData(color: Colors.white),
         automaticallyImplyLeading: false,
         actions: [
           Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.info_outline),
+                icon: const Icon(Icons.info_outline, color: Colors.black87,),
                 onPressed: () {
                   _showHelpDialog(context);
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.airline_seat_recline_extra_sharp, color: Colors.blue,),
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CasesAroundDistrict())
+                  );
                 },
               ),
             ],
@@ -182,7 +191,7 @@ class _CasesAroundState extends State<CasesAround> {
                       final int cases = cityOccurrences[cityName] ?? 0;
                       final bool highCases = cases > 4;
                       final bool midCases = cases > 2;
-                      Color color = highCases ? Colors.red : midCases ? const Color(0xFFFFF463) : const Color(0xFFF1E3C8);
+                      Color color = highCases ? Color(0xffF88379) : midCases ? const Color(0xFFFFFAA0) : const Color(0xFFF1E3C8);
                       Color style = highCases ? Colors.white : midCases ? const Color(0xFF04234D) : const Color(0xFF04234D);
                       return Expanded (
                         child: cityName.isNotEmpty
@@ -191,7 +200,7 @@ class _CasesAroundState extends State<CasesAround> {
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => CityDetailsPage(cityName: cityName, color: color, style: style)),
+                                MaterialPageRoute(builder: (context) => CityDetailsPage(cityName: cityName, color: color, style: style, totalCases: cityOccurrences[cityName]!)),
                               );
                             },
                             child: Container(
@@ -216,13 +225,13 @@ class _CasesAroundState extends State<CasesAround> {
                                 children: [
                                   Text(
                                     cityName,
-                                    style: TextStyle(color: highCases ? Colors.white : midCases ? const Color(0xFF04234D) : const Color(0xFF04234D), fontSize: 20, fontWeight: FontWeight.bold),
+                                    style: TextStyle(color: highCases ? Color(0xFF04234D) : midCases ? const Color(0xFF04234D) : const Color(0xFF04234D), fontSize: 20, fontWeight: FontWeight.bold),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
                                     "Cases: ${cityOccurrences[cityName] ?? 0}", // Display the number of occurrences
-                                    style: TextStyle(color: highCases ? Colors.white : midCases ? const Color(0xFF04234D) : const Color(0xFF04234D), fontSize: 20, fontWeight: FontWeight.bold),
+                                    style: TextStyle(color: highCases ? Color(0xFF04234D) : midCases ? const Color(0xFF04234D) : const Color(0xFF04234D), fontSize: 20, fontWeight: FontWeight.bold),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -246,7 +255,7 @@ class _CasesAroundState extends State<CasesAround> {
                               ),
                             ],
                           ),
-                          child: Image.asset("assets/images/appicon.png"),
+                          child: Image.asset("assets/images/icon_red.png"),
                         ),
                       );
                     }).toList(),
@@ -267,8 +276,9 @@ class CityDetailsPage extends StatefulWidget {
   final String cityName;
   final Color color;
   final Color style;
+  final int totalCases;
 
-  CityDetailsPage({super.key, required this.cityName, required this.color, required this.style});
+  CityDetailsPage({super.key, required this.cityName, required this.color, required this.style, required this.totalCases});
 
   @override
   State<CityDetailsPage> createState() => _CityDetailsPageState();
@@ -306,14 +316,25 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+
+    String statusText;
+
+    if (widget.totalCases <= 2) {
+      statusText = "Low Alert";
+    } else if (widget.totalCases <= 4) {
+      statusText = "Mid Alert";
+    } else {
+      statusText = "High Alert";
+    }
+
     return Scaffold(
-      backgroundColor: Color(0xFFECC9C9),
+      backgroundColor: Color(0xFFD5D3D3),
       appBar: AppBar(
         title: Row(
           children: [
             Text(
               widget.cityName,
-              style: TextStyle(color: widget.style, fontWeight: FontWeight.bold),
+              style: TextStyle(color: theme, fontWeight: FontWeight.bold,),
             ),
             SizedBox(width: 10,),
             Container(
@@ -323,8 +344,8 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                 borderRadius: BorderRadius.circular(40),
               ),
               child: Text(
-                "Danger",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
+                  statusText,
+                style: TextStyle(color: widget.style, fontWeight: FontWeight.bold, fontSize: 17),
               ),
             ),
           ],
@@ -336,9 +357,7 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
             ],
           )
         ],
-        backgroundColor: Colors.blue,
-        iconTheme: IconThemeData(color: widget.style),
-
+        iconTheme: IconThemeData(color: theme),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -723,7 +742,7 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                             StreamBuilder<DocumentSnapshot>(
                               stream: FirebaseFirestore.instance.collection('userFlags').doc(user!.uid).snapshots(),
                               builder: (context, snapshot) {
-                                if (!snapshot.hasData) {
+                                if (!snapshot.hasData || !snapshot.data!.exists) {
                                   return IconButton(
                                     icon: const Icon(Icons.thumb_up_alt_outlined),
                                     onPressed: () async {
@@ -731,10 +750,10 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                     },
                                   );
                                 }
-                                final userLikes = snapshot.data!['likeReports'] ?? [];
-                                final hasLiked = userLikes.contains(documentId);
+                                // final userLikes = snapshot.data!['likeReports'] ?? [];
+                                // final hasLiked = userLikes.contains(documentId);
                                 return IconButton(
-                                  icon: Icon(hasLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined),
+                                  icon: Icon(Icons.thumb_up_alt_outlined),
                                   onPressed: () async {
                                     await _firestoreFetcher.toggleLikeReport(documentId, user.uid);
                                   },
@@ -760,7 +779,7 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                             StreamBuilder<DocumentSnapshot>(
                               stream: FirebaseFirestore.instance.collection('userFlags').doc(user.uid).snapshots(),
                               builder: (context, snapshot) {
-                                if (!snapshot.hasData) {
+                                if (!snapshot.hasData || !snapshot.data!.exists) {
                                   return IconButton(
                                     icon: const Icon(Icons.flag_outlined),
                                     onPressed: () async {
@@ -771,7 +790,7 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                 final userFlags = snapshot.data!['flagReports'] ?? [];
                                 final hasFlagged = userFlags.contains(documentId);
                                 return IconButton(
-                                  icon: Icon(hasFlagged ? Icons.flag, : Icons.flag_outlined),
+                                  icon: Icon(hasFlagged ? Icons.flag : Icons.flag_outlined, color: Colors.red,),
                                   onPressed: () async {
                                     await _firestoreFetcher.toggleFlagReport(documentId, user.uid, context);
                                   },

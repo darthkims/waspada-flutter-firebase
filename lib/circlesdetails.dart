@@ -89,13 +89,13 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF4F3F2),
       appBar: AppBar(
         title: Text(
           widget.circleName,
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.blue),
         ),
-        backgroundColor: Colors.blue,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.blue),
         actions: [
           IconButton(
             icon: const Icon(Icons.more_vert),
@@ -334,20 +334,12 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                                               },
                                                             ),
                                                             Padding(
-                                                              padding: EdgeInsets
-                                                                  .symmetric(
-                                                                      horizontal:
-                                                                          16),
-                                                              child: Row(
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .spaceBetween,
+                                                              padding: EdgeInsets.symmetric(horizontal: 16),
+                                                              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                 children: [
                                                                   Text(formatDuration(
                                                                       position)),
-                                                                  Text(formatDuration(
-                                                                      duration -
-                                                                          position)),
+                                                                  Text(formatDuration(duration - position)),
                                                                 ],
                                                               ),
                                                             )
@@ -358,66 +350,46 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                                             onPressed:
                                                                 () async {
                                                               if (!_isPlaying) {
-                                                                await _audioPlayer
-                                                                    .setSourceUrl(
-                                                                        mediaUrl);
-                                                                await _audioPlayer
-                                                                    .resume();
+                                                                await _audioPlayer.setSourceUrl(mediaUrl);
+                                                                await _audioPlayer.resume();
                                                                 setState(() {
-                                                                  _isPlaying =
-                                                                      true;
-                                                                  _isPaused =
-                                                                      false;
+                                                                  _isPlaying = true;
+                                                                  _isPaused = false;
                                                                 });
                                                               } else if (_isPaused) {
-                                                                await _audioPlayer
-                                                                    .resume();
+                                                                await _audioPlayer.resume();
                                                                 setState(() {
-                                                                  _isPaused =
-                                                                      false;
+                                                                  _isPaused = false;
                                                                 });
                                                               }
                                                             },
                                                             child: Text(
-                                                                _isPaused
-                                                                    ? 'Resume'
-                                                                    : 'Play'),
+                                                                _isPaused ? 'Resume' : 'Play'),
                                                           ),
                                                           TextButton(
                                                             onPressed:
                                                                 () async {
                                                               if (_isPlaying &&
                                                                   !_isPaused) {
-                                                                await _audioPlayer
-                                                                    .pause();
+                                                                await _audioPlayer.pause();
                                                                 setState(() {
-                                                                  _isPaused =
-                                                                      true;
+                                                                  _isPaused = true;
                                                                 });
                                                               }
                                                             },
-                                                            child: const Text(
-                                                                'Pause'),
+                                                            child: const Text('Pause'),
                                                           ),
                                                           TextButton(
-                                                            onPressed:
-                                                                () async {
-                                                              await _audioPlayer
-                                                                  .stop();
+                                                            onPressed: () async {
+                                                              await _audioPlayer.stop();
                                                               setState(() {
-                                                                _isPlaying =
-                                                                    false;
-                                                                _isPaused =
-                                                                    false;
+                                                                _isPlaying = false;
+                                                                _isPaused = false;
                                                               });
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .pop(); // Close the dialog
-                                                              positionSubscription
-                                                                  .cancel(); // Cancel the subscription when dialog is closed
+                                                              Navigator.of(context).pop(); // Close the dialog
+                                                              positionSubscription.cancel(); // Cancel the subscription when dialog is closed
                                                             },
-                                                            child: const Text(
-                                                                'Stop'),
+                                                            child: const Text('Stop'),
                                                           ),
                                                         ],
                                                       );
@@ -556,13 +528,15 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(3.0),
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _messageController,
                       decoration: const InputDecoration(
+                        fillColor: Colors.white,
+                        filled: true,
                         enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(30)),
                             borderSide: BorderSide(color: Colors.blue)
@@ -682,7 +656,7 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                         iconColor: Colors.white,
                                         textColor: Colors.white,
                                         collapsedBackgroundColor: Colors.grey[300],
-                                        backgroundColor: Colors.blue,
+                                        backgroundColor: Colors.blueAccent,
                                         trailing: Icon(Icons.expand_more),
                                         children: [
                                           FutureBuilder(

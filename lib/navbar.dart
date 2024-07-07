@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// custom_navigation_bar.dart
 class CustomNavigationBar extends StatelessWidget {
   final int currentPageIndex;
   final Function(int) onItemTapped;
@@ -13,22 +12,22 @@ class CustomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    const Color selected = Colors.blue;
+    const Color selected = Colors.red;
     const Color unselected = Colors.black87;
 
     return NavigationBarTheme(
       data: NavigationBarThemeData(
         labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>(
               (Set<WidgetState> states) => states.contains(WidgetState.selected)
-              ? const TextStyle(color: Colors.blue, fontSize: 13, fontWeight: FontWeight.bold)
+              ? const TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.bold)
               : const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w500),
         ),
       ),
       child: NavigationBar(
         height: 75,
-        backgroundColor: Colors.white54,
+        backgroundColor: Colors.white,
         onDestinationSelected: onItemTapped,
-        indicatorColor: Colors.blue[50],
+        indicatorColor: Colors.red[50],
         selectedIndex: currentPageIndex,
         destinations: const <Widget>[
           NavigationDestination(

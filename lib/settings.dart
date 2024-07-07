@@ -7,6 +7,7 @@ import 'package:fypppp/startup.dart';
 
 final AuthenticationHelper _authHelper = AuthenticationHelper();
 
+const Color theme = Colors.red;
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -15,11 +16,12 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return Scaffold(
+      backgroundColor: Color(0xFFF4F3F2),
       appBar: AppBar(
-        title: const Text('Settings', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.blue,
+        title: const Text('Settings', style: TextStyle(color: theme, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
         iconTheme: const IconThemeData(
-            color: Colors.white), // Set the leading icon color to white
+            color: theme), // Set the leading icon color to white
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -54,7 +56,7 @@ class SettingsPage extends StatelessWidget {
               const Divider(), // Add a divider between menu items
               ElevatedButton(
                 style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(const Color(0xFF6798F8)),
+                  backgroundColor: WidgetStateProperty.all(theme),
                   shape: WidgetStateProperty.all(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -112,10 +114,10 @@ class AccountSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF4F3F2),
       appBar: AppBar(
-        title: const Text('Account Settings', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.blue,
-        iconTheme: const IconThemeData(color: Colors.white), // Set the leading icon color to white
+        title: const Text('Account Settings', style: TextStyle(color: theme, fontWeight: FontWeight.bold)),
+        iconTheme: const IconThemeData(color: theme), // Set the leading icon color to white
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -162,9 +164,8 @@ class ChangeEmail extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Change Email', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.blue,
-        iconTheme: const IconThemeData(color: Colors.white), // Set the leading icon color to white
+        title: const Text('Change Email', style: TextStyle(color: theme, fontWeight: FontWeight.bold)),
+        iconTheme: const IconThemeData(color: theme), // Set the leading icon color to white
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -281,7 +282,7 @@ class ChangeEmail extends StatelessWidget {
                   );
                 }
               },
-              child: const Text('Update',
+              child: const Text('Update Email',
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -305,9 +306,8 @@ class ChangePassword extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Change Password', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.blue,
-        iconTheme: const IconThemeData(color: Colors.white), // Set the leading icon color to white
+        title: const Text('Change Password', style: TextStyle(color:theme, fontWeight: FontWeight.bold)),
+        iconTheme: const IconThemeData(color: theme), // Set the leading icon color to white
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -407,7 +407,7 @@ class ChangePassword extends StatelessWidget {
                       );
                     }
                   },
-                  child: const Text('Update', style: TextStyle(color: Colors.white),)
+                  child: const Text('Update Password', style: TextStyle(color: Colors.white),)
               ),
             ],
           ),

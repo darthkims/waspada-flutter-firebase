@@ -1,10 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fypppp/casesaround.dart';
-import 'package:fypppp/circles.dart';
 import 'package:fypppp/firestore/fetchdata.dart';
-import 'package:fypppp/home.dart';
+
+const Color theme = Colors.red;
 
 class ProfileEditPage extends StatefulWidget {
   @override
@@ -102,12 +101,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       appBar: AppBar(
         title: const Text(
           'Edit Profile',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: theme, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.blue,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: theme),
       ),
-      backgroundColor: const Color(0xFFFFFFFF),
+      backgroundColor: Color(0xFFF4F3F2),
       body: Center(
         child: SingleChildScrollView(
           child: Stack(
@@ -140,10 +138,12 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         labelText: 'Username',
                         labelStyle: TextStyle(color: Colors.black),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),                          borderSide: BorderSide(color: Colors.black),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                          borderSide: BorderSide(color: Colors.black),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),                          borderSide: BorderSide(color: Colors.black),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                          borderSide: BorderSide(color: Colors.black),
                         ),
                       ),
                     ),
@@ -154,10 +154,12 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         labelText: 'Phone Number',
                         labelStyle: TextStyle(color: Colors.black),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),                          borderSide: BorderSide(color: Colors.black),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                          borderSide: BorderSide(color: Colors.black),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),                          borderSide: BorderSide(color: Colors.black),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                          borderSide: BorderSide(color: Colors.black),
                         ),
                       ),
                       keyboardType: TextInputType.number,
@@ -165,8 +167,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                     const SizedBox(height: 20),
                     ElevatedButton(
                       style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(const Color(0xFF6798F8)),
-                        shape: MaterialStateProperty.all(
+                        backgroundColor: WidgetStateProperty.all(const Color(0xFF6798F8)),
+                        shape: WidgetStateProperty.all(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),

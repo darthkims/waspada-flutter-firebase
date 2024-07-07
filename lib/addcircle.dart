@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore package
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
 
 
 class AddCircle extends StatefulWidget {
@@ -17,6 +18,18 @@ class _AddCircleState extends State<AddCircle> {
   TextEditingController circleNameController = TextEditingController();
   TextEditingController usernameController = TextEditingController();
   List<String> members = [];
+  String? selectedImage;
+  String? selectedImageName;
+  Map<String, String> imageNames = {
+    'assets/circle_icons/celebration.png': 'Celebration',
+    'assets/circle_icons/directions.png': 'Jogging',
+    'assets/circle_icons/fastfood.png': 'Eating Out',
+    'assets/circle_icons/flight_takeoff.png': 'Vacations',
+    'assets/circle_icons/hotel.png': 'Sleepover',
+    'assets/circle_icons/partner_exchange.png': 'Dating',
+    'assets/circle_icons/shopping_bag.png': 'Shopping',
+    'assets/circle_icons/stadium.png': 'Event',
+  };
 
   // Firestore instance
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -62,10 +75,11 @@ class _AddCircleState extends State<AddCircle> {
     }
   }
 
-  Future<void> addCircleToFirestore(String circleName, List<String> memberNames) async {
+  Future<void> addCircleToFirestore(String circleName, List<String> memberNames, selectedImage, selectedImageName) async {
     try {
       // Get the current user's ID
       String userId = FirebaseAuth.instance.currentUser!.uid;
+      String icon = path.basenameWithoutExtension(selectedImage);
 
       // Initialize a list to store the user IDs of the members
       List<String> memberIds = [];
@@ -91,6 +105,8 @@ class _AddCircleState extends State<AddCircle> {
         'circleName': circleName,
         'members': memberIds,
         'admin' : userId,
+        'icon' : icon,
+        'type' : selectedImageName,
       });
 
       // Notify each member using FCM
@@ -188,14 +204,16 @@ class _AddCircleState extends State<AddCircle> {
 
   @override
   Widget build(BuildContext context) {
+    List<String> images = imageNames.keys.toList();
+
     return Scaffold(
+      backgroundColor: Color(0xFFF4F3F2),
       appBar: AppBar(
         title: const Text(
           'Create Circle',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.blue,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.blue),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -205,10 +223,48 @@ class _AddCircleState extends State<AddCircle> {
             TextField(
               controller: circleNameController,
               decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
-                labelText: 'Enter Circle Name...',
+                labelText: 'Enter Circle Name',
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            ButtonTheme(
+              alignedDropdown: true,
+              child: DropdownButtonFormField<String>(
+                isExpanded: true,
+                borderRadius: BorderRadius.circular(30),
+                hint: Text("Choose Circle Icons"),
+                value: selectedImage,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedImage = newValue;
+                    selectedImageName = imageNames[selectedImage]!; // Update selectedImageName with the custom name
+                    print(selectedImageName);
+                  });
+                },
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                items: images.map((String image) {
+                  return DropdownMenuItem<String>(
+                    value: image,
+                    child: Row(
+                      children: [
+                        Image.asset(image, width: 30, height: 30),
+                        const SizedBox(width: 10),
+                        Text(imageNames[image]!),
+                      ],
+                    ),
+                  );
+                }).toList(),
               ),
             ),
             const SizedBox(height: 16.0),
@@ -219,10 +275,12 @@ class _AddCircleState extends State<AddCircle> {
                   child: TextField(
                     controller: usernameController,
                     decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10)
                       ),
-                      labelText: 'Enter username...',
+                      labelText: 'Enter member username',
                     ),
                   ),
                 ),
@@ -253,28 +311,38 @@ class _AddCircleState extends State<AddCircle> {
             const SizedBox(height: 10.0),
             // Display the list of members
             Expanded(
-              child: ListView.builder(
-                itemCount: members.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(
-                      members[index],
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        // Remove the member from the list
-                        setState(() {
-                          members.removeAt(index);
-                        });
-                      },
-                    ),
-                  );
-                },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: ListView.builder(
+                  itemCount: members.length,
+                  itemBuilder: (context, index) {
+                    return Column(
+                      children: [
+                        ListTile(
+                          title: Text(
+                            members[index],
+                            style: const TextStyle(color: Colors.black),
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              // Remove the member from the list
+                              setState(() {
+                                members.removeAt(index);
+                              });
+                            },
+                          ),
+                        ),
+                        Divider(),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
-
             const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () {
@@ -297,7 +365,7 @@ class _AddCircleState extends State<AddCircle> {
                   return; // Exit onPressed function
                 }
                 // Add circle to Firestore
-                addCircleToFirestore(circleName, members);
+                addCircleToFirestore(circleName, members, selectedImage, selectedImageName);
               },
               child: const Text(
                 'Create Circle',

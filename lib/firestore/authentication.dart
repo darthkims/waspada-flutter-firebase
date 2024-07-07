@@ -24,21 +24,20 @@ class AuthenticationHelper {
         try {
           await user.updateDisplayName(fullName);
 
-          // Firestore integration - Create a new document with user data
           final docRef = _firestore.collection('users').doc(user.uid);
           await docRef.set({
             'fullName': fullName,
-            'uid': user.uid, // Include user ID for reference
+            'uid': user.uid,
             'username' : userName,
           });
 
           return null; // Sign-up successful
         } catch (e) {
           print("Error updating profile: $e");
-          return "Error creating account: $e"; // More informative error message
+          return "Error creating account: $e";
         }
       } else {
-        return "Failed to create user"; // Handle unexpected null user
+        return "Failed to create user";
       }
     } on FirebaseAuthException catch (e) {
       return e.message; // Return specific Firebase Auth error message

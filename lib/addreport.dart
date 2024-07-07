@@ -118,10 +118,9 @@ class _AddReportState extends State<AddReport> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Add Report",
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
       ),
-      backgroundColor: Colors.blue,
-      iconTheme: const IconThemeData(color: Colors.white), // Set the leading icon color to white
+      iconTheme: const IconThemeData(color: Colors.blue), // Set the leading icon color to white
     ),
       body: SingleChildScrollView(
         child: Container(
@@ -137,14 +136,12 @@ class _AddReportState extends State<AddReport> {
                 alignedDropdown: true,
                 child: DropdownButtonFormField<String>(
                   isExpanded: true,
-                  menuMaxHeight: 400, // setting dropdown list max height
+                  menuMaxHeight: 400,
                   borderRadius: BorderRadius.circular(30),
-                  items: caseTypes
-                      .map((String type) => DropdownMenuItem<String>(
+                  items: caseTypes.map((String type) => DropdownMenuItem<String>(
                     value: type,
                     child: Text(type),
-                  ))
-                      .toList(),
+                  )).toList(),
                   onChanged: (value) {
                     // Update the selected case type when user selects a case type
                     setState(() {

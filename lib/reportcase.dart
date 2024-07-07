@@ -22,12 +22,12 @@ class _ReportCaseState extends State<ReportCase> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF4F3F2),
       appBar: AppBar(
         title: const Text('Report Case',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
       ),
-      backgroundColor: Colors.blue,
-      iconTheme: const IconThemeData(color: Colors.white), // Set the leading icon color to white
+      iconTheme: const IconThemeData(color: Colors.blue), // Set the leading icon color to white
         actions: [
           Row(
             children: [
@@ -181,7 +181,7 @@ class _ReportCaseState extends State<ReportCase> {
                 padding: const EdgeInsets.all(16.0),
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF66EEEE),
+                  color:  Colors.white,
                   borderRadius: BorderRadius.circular(10.0),
                   boxShadow: [
                     BoxShadow(
@@ -477,10 +477,25 @@ class _ReportCaseState extends State<ReportCase> {
                     // Like and Dislike buttons
                     Row(
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.thumb_up_alt_outlined),
-                          onPressed: () async {
-                            await _firestoreFetcher.toggleLikeReport(documentId, user.uid);
+                        StreamBuilder<DocumentSnapshot>(
+                          stream: FirebaseFirestore.instance.collection('userFlags').doc(user!.uid).snapshots(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return IconButton(
+                                icon: const Icon(Icons.thumb_up_alt_outlined),
+                                onPressed: () async {
+                                  await _firestoreFetcher.toggleLikeReport(documentId, user.uid);
+                                },
+                              );
+                            }
+                            final userLikes = snapshot.data!['likeReports'] ?? [];
+                            final hasLiked = userLikes.contains(documentId);
+                            return IconButton(
+                              icon: Icon(hasLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined),
+                              onPressed: () async {
+                                await _firestoreFetcher.toggleLikeReport(documentId, user.uid);
+                              },
+                            );
                           },
                         ),
                         StreamBuilder<DocumentSnapshot>(
@@ -496,10 +511,25 @@ class _ReportCaseState extends State<ReportCase> {
                             return Text('$likesCount Likes', style: const TextStyle(fontSize: 17,),);
                           },
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.flag_outlined),
-                          onPressed: () async {
-                            await _firestoreFetcher.toggleFlagReport(documentId, user.uid, context);
+                        StreamBuilder<DocumentSnapshot>(
+                          stream: FirebaseFirestore.instance.collection('userFlags').doc(user.uid).snapshots(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return IconButton(
+                                icon: const Icon(Icons.flag_outlined),
+                                onPressed: () async {
+                                  await _firestoreFetcher.toggleFlagReport(documentId, user.uid, context);
+                                },
+                              );
+                            }
+                            final userFlags = snapshot.data!['flagReports'] ?? [];
+                            final hasFlagged = userFlags.contains(documentId);
+                            return IconButton(
+                              icon: Icon(hasFlagged ? Icons.flag: Icons.flag_outlined),
+                              onPressed: () async {
+                                await _firestoreFetcher.toggleFlagReport(documentId, user.uid, context);
+                              },
+                            );
                           },
                         ),
                         StreamBuilder<DocumentSnapshot>(

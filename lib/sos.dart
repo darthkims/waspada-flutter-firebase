@@ -204,7 +204,7 @@ class _SOSPageState extends State<SOSPage> {
       );
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks.first;
-        String address = '${place.name}, ${place.thoroughfare}';
+        String address = '${place.name}, ${place.thoroughfare}, ${place.subLocality}, ${place.locality}';
         print("${place.name}, ${place.street}, ${place.locality}, ${place.subLocality}, ${place.street}, ${place.locality}");
         setState(() {
           _currentLocation = address;
@@ -272,29 +272,6 @@ class _SOSPageState extends State<SOSPage> {
                     child: CameraPreview(_controller),
                   ),
                   Positioned(
-                    top: 50,
-                    right: 40,
-                    child: _isOnline
-                        ? Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(20), // Adjust the radius to your preference
-                      ),
-                          child: const Text('Online', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    )
-                        : Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.redAccent, // Set color to red when offline
-                        borderRadius: BorderRadius.circular(20), // Adjust the radius to your preference
-                      ),
-                          child: const Text('Offline', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-
-
-                  Positioned(
                     bottom: 0,
                     left: 0,
                     right: 0,
@@ -310,11 +287,15 @@ class _SOSPageState extends State<SOSPage> {
                                 bottomLeft: Radius.circular(20.0),
                               ),
                               child: Container(
-                                color: const Color(0xFF66EEEE),
+                                color: const Color(0x5A000000),
                                 child: Center(
-                                  child: Text(
-                                    'Duration: ${_formatElapsedTime(_elapsedSeconds)}',
-                                    style: const TextStyle(color: Colors.black, fontSize: 30),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      _currentLocation,
+                                      style: const TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -322,7 +303,7 @@ class _SOSPageState extends State<SOSPage> {
                           ),
                           Container(
                             width: 2,
-                            color: const Color(0xFF20FFFF),
+                            color: Colors.black12
                           ),
                           Expanded(
                             child: Stack(
@@ -333,7 +314,7 @@ class _SOSPageState extends State<SOSPage> {
                                     bottomRight: Radius.circular(20.0),
                                   ),
                                   child: Container(
-                                    color: const Color(0xFF66EEEE),
+                                    color: const Color(0x5A000000),
                                     child: _currentLocation.isEmpty
                                         ? const Center(
                                       child: CircularProgressIndicator(
@@ -343,21 +324,17 @@ class _SOSPageState extends State<SOSPage> {
                                       ),
                                     )
                                         : Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       crossAxisAlignment: CrossAxisAlignment.center,
                                       children: [
                                         Center(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                                  _currentLocation,
-                                              style: const TextStyle(
-                                                fontSize: 20,
-                                                color: Colors.black,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
+                                          child:
+                                          Text(
+                                            'Time: ${_formatElapsedTime(_elapsedSeconds)}',
+                                            style: const TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
                                           ),
                                         ),
+                                        SizedBox(height: 10,),
                                         Center(
                                           child: ElevatedButton(
                                             style: ButtonStyle(

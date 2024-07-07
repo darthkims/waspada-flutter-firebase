@@ -8,10 +8,14 @@ import 'package:fypppp/firestore/fetchdata.dart';
 import 'package:fypppp/home.dart';
 import 'package:fypppp/navbar.dart';
 import 'package:fypppp/profileedit.dart';
+import 'package:fypppp/settings.dart';
 import 'package:fypppp/sos.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
+
+Color appbar = Colors.white;
+Color textappbar = Colors.red;
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -93,12 +97,14 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
+        backgroundColor: Color(0xFFF4F3F2),
+        appBar: AppBar(
+        title: Text(
           'Profile',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: textappbar, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.blue,
+
+        backgroundColor: appbar,
         iconTheme: const IconThemeData(color: Colors.white),
         automaticallyImplyLeading: false,
       ),
@@ -118,22 +124,28 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileEditPage() ));
                 },
               ),
-              const Divider(), // Add a divider between menu items
+              const Divider(),
               ListTile(
                 title: const Text('SOS Video Recordings'),
                 onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const ViewSOS()));
                 },
               ),
-              const Divider(), // Add a divider between menu items
+              const Divider(),
               ListTile(
                 title: const Text('SOS Audio Recordings'),
                 onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const ViewSOSAudio()));
                 },
               ),
-              const Divider(), // Add a divider between menu items
-              const SizedBox(height: 20),
+              const Divider(),
+              ListTile(
+                title: const Text('Settings'),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsPage()));
+                },
+              ),
+              const Divider(),
             ],
           ),
         ),
@@ -159,13 +171,14 @@ class _ViewSOSState extends State<ViewSOS> {
     User? user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
+      backgroundColor: Color(0xFFF4F3F2),
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'SOS Video Recordings',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: textappbar, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.blue,
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: appbar,
+        iconTheme: IconThemeData(color: textappbar),
       ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('SOSreports').orderBy('timeStamp', descending: true).snapshots(),
@@ -431,12 +444,12 @@ class _ViewSOSAudioState extends State<ViewSOSAudio> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'SOS Audio Recordings',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: textappbar, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.blue,
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: appbar,
+        iconTheme: IconThemeData(color: textappbar),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance

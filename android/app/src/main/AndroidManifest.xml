@@ -29,6 +29,17 @@
         android:label="Waspada"
         android:requestLegacyExternalStorage="true">
         <receiver
+            android:name=".SOSAudio"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/s_o_s_audio_info" />
+        </receiver>
+        <receiver
             android:name=".SOSpanic"
             android:exported="false">
             <intent-filter>
@@ -38,28 +49,6 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/s_o_spanic_info" />
-        </receiver>
-        <receiver
-            android:name=".PanicButton"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/panic_button_info" />
-        </receiver>
-        <receiver
-            android:name=".SOSWidget"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/s_o_s_widget_info" />
         </receiver>
 
         <activity

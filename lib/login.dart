@@ -22,7 +22,7 @@ class LoginForm extends StatelessWidget {
     final TextEditingController passwordController = TextEditingController();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF66EEEE),
+      backgroundColor: const Color(0xFFF4F3F2),
       body: Center(
         child: SingleChildScrollView(
           child: Container(
@@ -32,7 +32,7 @@ class LoginForm extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/images/logo.png',
+                  'assets/images/waspada_word_logo.png',
                   width: 500,
                   height: 200,
                 ),
@@ -81,8 +81,8 @@ class LoginForm extends StatelessWidget {
                 const SizedBox(height: 30,),
                 ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(const Color(0xFF6798F8)),
-                      shape: MaterialStateProperty.all(
+                      backgroundColor: WidgetStateProperty.all(const Color(0xffF88379)),
+                      shape: WidgetStateProperty.all(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -113,15 +113,16 @@ class LoginForm extends StatelessWidget {
                         );
                       }
                     },
-                    child: const Text("Login", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white, height: 2),)
+                    child: const Text("Login", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white, height: 2),)
                 ),
                 const SizedBox(height: 30,),
-                const Divider(color: Color(0xFF6798F8),),
+                const Divider(),
                 const SizedBox(height: 30,),
+                Text("Are you new here? Join the community!", style: TextStyle(color: Color(0xff671107)),),
                 ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(const Color(0xFF6798F8)),
-                      shape: MaterialStateProperty.all(
+                      backgroundColor: WidgetStateProperty.all(const Color(0xffF88379)),
+                      shape: WidgetStateProperty.all(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -131,7 +132,7 @@ class LoginForm extends StatelessWidget {
                       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const SignUpForm())
                       );
                     },
-                    child: const Text("New User", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white, height: 2),)
+                    child: const Text("New User", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white, height: 2),)
                 ),
               ],
             ),

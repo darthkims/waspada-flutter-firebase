@@ -36,20 +36,18 @@ class SignUpForm extends StatelessWidget {
     final TextEditingController _confirmPasswordController = TextEditingController();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF66EEEE),
+      backgroundColor: const Color(0xFFF4F3F2),
       body: Center(
         child: SingleChildScrollView(
           child: Container(
-            margin: const EdgeInsets.all(15),
+            margin: const EdgeInsets.only(left: 15, right: 15),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/images/logo.png',
-                  width: 500,
-                  height: 200,
-                ),
+                  'assets/images/waspada_word_logo.png',),
+                SizedBox(height: 30,),
                 TextFormField(
                   controller: _fullNameController,
                   focusNode: _fullNameFocus,
@@ -164,7 +162,7 @@ class SignUpForm extends StatelessWidget {
                 const SizedBox(height: 30),
                 ElevatedButton(
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(const Color(0xFF6798F8)),
+                    backgroundColor: MaterialStateProperty.all(const Color(0xffF88379)),
                     shape: MaterialStateProperty.all(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -227,7 +225,7 @@ class SignUpForm extends StatelessWidget {
                   child: const Text(
                     "Sign Up",
                     style: TextStyle(
-                      fontSize: 25,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       height: 2,
@@ -236,12 +234,13 @@ class SignUpForm extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 30),
-                const Divider(color: Color(0xFF6798F8),),
+                const Divider(),
                 const SizedBox(height: 30),
+                Text("Already signed up? Login now!", style: TextStyle(color: Color(0xff671107)),),
                 ElevatedButton(
                   style: ButtonStyle(
                     backgroundColor:
-                    MaterialStateProperty.all(const Color(0xFF6798F8)),
+                    MaterialStateProperty.all(const Color(0xffF88379)),
                     shape: MaterialStateProperty.all(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -257,7 +256,7 @@ class SignUpForm extends StatelessWidget {
                   child: const Text(
                     "Existing User",
                     style: TextStyle(
-                      fontSize: 25,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       height: 2,

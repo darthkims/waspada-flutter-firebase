@@ -30,8 +30,8 @@ class _AddCircleState extends State<AddCircle> {
     'assets/circle_icons/shopping_bag.png': 'Shopping',
     'assets/circle_icons/stadium.png': 'Event',
   };
-
-  // Firestore instance
+  Color theme = Colors.red;
+  Color sectheme = Colors.white;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> searchUsers(String username) async {
@@ -85,23 +85,23 @@ class _AddCircleState extends State<AddCircle> {
       List<String> memberIds = [];
 
       // Get a reference to the Firestore instance
-      final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
       // Query Firestore to find the user IDs of the members based on their names
-      QuerySnapshot memberSnapshot = await _firestore.collection('users')
+      QuerySnapshot memberSnapshot = await firestore.collection('users')
           .where('username', whereIn: memberNames)
           .get();
 
       // Iterate through the query snapshot to extract user IDs
-      memberSnapshot.docs.forEach((doc) {
+      for (var doc in memberSnapshot.docs) {
         memberIds.add(doc.id); // Assuming user ID is stored as the document ID
-      });
+      }
 
       // Add the current user's ID to the list of member IDs
       memberIds.add(userId);
 
       // Set the circle document with the circle name as the document ID
-      await _firestore.collection('circles').doc(circleName).set({
+      await firestore.collection('circles').doc(circleName).set({
         'circleName': circleName,
         'members': memberIds,
         'admin' : userId,
@@ -209,11 +209,12 @@ class _AddCircleState extends State<AddCircle> {
     return Scaffold(
       backgroundColor: Color(0xFFF4F3F2),
       appBar: AppBar(
-        title: const Text(
+        backgroundColor: theme,
+        title: Text(
           'Create Circle',
-          style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+          style: TextStyle(color: sectheme, fontWeight: FontWeight.bold),
         ),
-        iconTheme: const IconThemeData(color: Colors.blue),
+        iconTheme: IconThemeData(color: sectheme),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -293,7 +294,7 @@ class _AddCircleState extends State<AddCircle> {
                   // ),
                   style: ButtonStyle(
                     backgroundColor:
-                    WidgetStateProperty.all(Colors.blue),
+                    WidgetStateProperty.all(theme),
                     shape: WidgetStateProperty.all(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -374,7 +375,7 @@ class _AddCircleState extends State<AddCircle> {
               ),
               style: ButtonStyle(
                 backgroundColor:
-                WidgetStateProperty.all(Colors.blue),
+                WidgetStateProperty.all(Colors.red),
                 shape: WidgetStateProperty.all(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),

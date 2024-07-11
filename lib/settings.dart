@@ -8,6 +8,7 @@ import 'package:fypppp/startup.dart';
 final AuthenticationHelper _authHelper = AuthenticationHelper();
 
 const Color theme = Colors.red;
+const Color sectheme = Colors.white;
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -18,10 +19,10 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Color(0xFFF4F3F2),
       appBar: AppBar(
-        title: const Text('Settings', style: TextStyle(color: theme, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
+        title: const Text('Settings', style: TextStyle(color: sectheme, fontWeight: FontWeight.bold)),
+        backgroundColor: theme,
         iconTheme: const IconThemeData(
-            color: theme), // Set the leading icon color to white
+            color: sectheme), // Set the leading icon color to white
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -37,13 +38,6 @@ class SettingsPage extends StatelessWidget {
                   // Replace `AccountSettingsScreen` with your actual account settings screen widget
                   Navigator.push(context, MaterialPageRoute(
                       builder: (context) => const AccountSettings()));
-                },
-              ),
-              const Divider(), // Add a divider between menu items
-              ListTile(
-                title: const Text('Testing SMS'),
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => ChatPage()));
                 },
               ),
               const Divider(), // Add a divider between menu items
@@ -116,8 +110,9 @@ class AccountSettings extends StatelessWidget {
     return Scaffold(
       backgroundColor: Color(0xFFF4F3F2),
       appBar: AppBar(
-        title: const Text('Account Settings', style: TextStyle(color: theme, fontWeight: FontWeight.bold)),
-        iconTheme: const IconThemeData(color: theme), // Set the leading icon color to white
+        backgroundColor: theme,
+        title: const Text('Account Settings', style: TextStyle(color: sectheme, fontWeight: FontWeight.bold)),
+        iconTheme: const IconThemeData(color: sectheme), // Set the leading icon color to white
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -164,8 +159,9 @@ class ChangeEmail extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Change Email', style: TextStyle(color: theme, fontWeight: FontWeight.bold)),
-        iconTheme: const IconThemeData(color: theme), // Set the leading icon color to white
+        backgroundColor: theme,
+        title: const Text('Change Email', style: TextStyle(color: sectheme, fontWeight: FontWeight.bold)),
+        iconTheme: const IconThemeData(color: sectheme), // Set the leading icon color to white
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -199,7 +195,7 @@ class ChangeEmail extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(const Color(0xFF6798F8)),
+                backgroundColor: WidgetStateProperty.all(theme),
                 shape: WidgetStateProperty.all(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -306,8 +302,9 @@ class ChangePassword extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Change Password', style: TextStyle(color:theme, fontWeight: FontWeight.bold)),
-        iconTheme: const IconThemeData(color: theme), // Set the leading icon color to white
+        backgroundColor: theme,
+        title: const Text('Change Password', style: TextStyle(color: sectheme, fontWeight: FontWeight.bold)),
+        iconTheme: const IconThemeData(color: sectheme), // Set the leading icon color to white
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -353,7 +350,7 @@ class ChangePassword extends StatelessWidget {
               const SizedBox(height: 30,),
               ElevatedButton(
                   style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(const Color(0xFF6798F8)),
+                    backgroundColor: WidgetStateProperty.all(theme),
                     shape: WidgetStateProperty.all(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),

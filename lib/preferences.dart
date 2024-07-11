@@ -9,6 +9,8 @@ class PreferencesPage extends StatefulWidget {
 }
 
 class _PreferencesPageState extends State<PreferencesPage> {
+  Color theme = Colors.red;
+  Color sectheme = Colors.white;
   int distanceAlert = 1; // Default value
   final TextEditingController _controller = TextEditingController();
 
@@ -82,11 +84,12 @@ class _PreferencesPageState extends State<PreferencesPage> {
     return Scaffold(
       backgroundColor: Color(0xFFF4F3F2),
       appBar: AppBar(
-        title: const Text(
+        backgroundColor: theme,
+        title: Text(
           'Preferences',
-          style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+          style: TextStyle(color: sectheme, fontWeight: FontWeight.bold),
         ),
-        iconTheme: const IconThemeData(color: Colors.blue),
+        iconTheme: IconThemeData(color: sectheme),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -104,6 +107,8 @@ class _PreferencesPageState extends State<PreferencesPage> {
                     controller: _controller,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
+                      fillColor: Colors.white,
+                      filled: true,
                       enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(15)),
                           borderSide: BorderSide(color: Colors.black)
@@ -120,7 +125,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
                 ElevatedButton(
                   onPressed: _updateDistanceAlert,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: theme,
                   ),
                   child: const Text('Save', style: TextStyle(color: Colors.white)),
                 ),

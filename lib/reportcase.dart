@@ -16,18 +16,20 @@ class ReportCase extends StatefulWidget {
 }
 
 class _ReportCaseState extends State<ReportCase> {
-  final FirestoreFetcher _firestoreFetcher = FirestoreFetcher(); // Instantiate FirestoreFetcher
-
+  final FirestoreFetcher _firestoreFetcher = FirestoreFetcher();
+  Color theme = Colors.red;
+  Color sectheme = Colors.white;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF4F3F2),
+      backgroundColor: const Color(0xFFF4F3F2),
       appBar: AppBar(
-        title: const Text('Report Case',
-          style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+        backgroundColor: theme,
+        title: Text('Report Case',
+          style: TextStyle(color: sectheme, fontWeight: FontWeight.bold),
       ),
-      iconTheme: const IconThemeData(color: Colors.blue), // Set the leading icon color to white
+      iconTheme: IconThemeData(color: sectheme), // Set the leading icon color to white
         actions: [
           Row(
             children: [
@@ -108,14 +110,12 @@ class _ReportCaseState extends State<ReportCase> {
             String formattedDateTime = DateFormat('dd MMMM yyyy, hh:mm a').format(timestamp!.toDate());
             String? location = (document.data() as Map<String, dynamic>)['location'] as String?;
 
-// Split the location string into latitude and longitude
             List<String> locationParts = location!.split(',');
             double latitude = double.parse(locationParts[0]);
             double longitude = double.parse(locationParts[1]);
             String? imageUrl = (document.data() as Map<String, dynamic>)['mediaUrl'] as String?;
             String? mediaFileName = (document.data() as Map<String, dynamic>)['mediaFileName'] as String?;
 
-            // Convert coordinates to human-readable address
             Future<String?> getAddressFromCoordinates(double latitude, double longitude) async {
               List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
               Placemark place = placemarks[0];
@@ -178,7 +178,7 @@ class _ReportCaseState extends State<ReportCase> {
                 }
               },
               child: Container(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(8.0),
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
                 decoration: BoxDecoration(
                   color:  Colors.white,
@@ -205,7 +205,7 @@ class _ReportCaseState extends State<ReportCase> {
                               Text(
                                 caseType!,
                                 style: const TextStyle(
-                                  fontSize: 35,
+                                  fontSize: 30,
                                   fontWeight: FontWeight.bold,
                                 ),
                                 overflow: TextOverflow.ellipsis,

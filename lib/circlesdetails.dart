@@ -8,6 +8,9 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
+const Color theme = Colors.red;
+const Color sectheme = Colors.white;
+
 class CircleDetailsPage extends StatefulWidget {
   final String circleName;
 
@@ -25,6 +28,7 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
   final _audioPlayer = AudioPlayer();
   bool _isPlaying = false;
   bool _isPaused = false;
+  String userId = FirebaseAuth.instance.currentUser!.uid;
 
   @override
   void initState() {
@@ -64,8 +68,7 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(50.0);
-      }
-      else {
+      } else {
         print('scrollcontroller no client');
       }
     });
@@ -79,7 +82,6 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
           child: Image.network(
             imageUrl,
             fit: BoxFit.contain,
-
           ),
         );
       },
@@ -89,13 +91,14 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF4F3F2),
+      backgroundColor: const Color(0xFFF4F3F2),
       appBar: AppBar(
+        backgroundColor: theme,
         title: Text(
           widget.circleName,
-          style: const TextStyle(color: Colors.blue),
+          style: const TextStyle(color: sectheme),
         ),
-        iconTheme: const IconThemeData(color: Colors.blue),
+        iconTheme: const IconThemeData(color: sectheme),
         actions: [
           IconButton(
             icon: const Icon(Icons.more_vert),
@@ -106,7 +109,7 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
         ],
       ),
       body: Container(
-        margin: const EdgeInsets.all(10),
+        margin: const EdgeInsets.only(left: 10, right: 10),
         child: Column(
           children: [
             Expanded(
@@ -117,7 +120,8 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                     .collection('messages')
                     .orderBy('timestamp', descending: false)
                     .snapshots(),
-                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                builder: (BuildContext context,
+                    AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
@@ -128,8 +132,12 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                     final data = doc.data() as Map<String, dynamic>;
 
                     // Check if the document contains the "mediaUrl" field
-                    final mediaUrl = data.containsKey('mediaUrl') ? data['mediaUrl'] as String : null;
-                    final fileName = data.containsKey('fileName') ? data['fileName'] as String : null;
+                    final mediaUrl = data.containsKey('mediaUrl')
+                        ? data['mediaUrl'] as String
+                        : null;
+                    final fileName = data.containsKey('fileName')
+                        ? data['fileName'] as String
+                        : null;
 
                     return {
                       'senderId': data['senderId'],
@@ -140,7 +148,6 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                       'location': data['location'],
                     };
                   }).toList();
-
 
                   return Scrollbar(
                     controller: _scrollController,
@@ -153,19 +160,26 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                         double latitude = location?.latitude ?? 0.0;
                         double longitude = location?.longitude ?? 0.0;
                         String message = _messages[index]['message'];
-                        String? mediaUrl = _messages[index]['mediaUrl']; // Make mediaUrl nullable
+                        String? mediaUrl = _messages[index]
+                            ['mediaUrl']; // Make mediaUrl nullable
                         Timestamp timestamp = _messages[index]['timestamp'];
-                        String time = DateFormat('d MMMM, hh:mm a').format(timestamp.toDate());
+                        String time = DateFormat('d MMMM, hh:mm a')
+                            .format(timestamp.toDate());
 
                         // Check if the senderId matches the current user's ID
-                        bool isCurrentUserMessage = senderId == FirebaseAuth.instance.currentUser!.uid;
+                        bool isCurrentUserMessage =
+                            senderId == FirebaseAuth.instance.currentUser!.uid;
                         CrossAxisAlignment messageAlignment =
-                        isCurrentUserMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+                            isCurrentUserMessage
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start;
 
                         // Check if the message contains "check in"
-                        bool containsCheckIn = message.toLowerCase().contains("check in report");
+                        bool containsCheckIn =
+                            message.toLowerCase().contains("check in report");
                         // Check if the message contains a mediaUrl
-                        bool containsMedia = mediaUrl != null && mediaUrl.isNotEmpty;
+                        bool containsMedia =
+                            mediaUrl != null && mediaUrl.isNotEmpty;
 
                         bool containsJPG = false;
                         if (fileName != null && fileName.isNotEmpty) {
@@ -174,18 +188,22 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
 
                         bool containsVideo = false;
                         if (fileName != null && fileName.isNotEmpty) {
-                          containsVideo = fileName.toLowerCase().contains('sosrecording');
+                          containsVideo =
+                              fileName.toLowerCase().contains('sosrecording');
                         }
 
                         bool containsAudio = false;
                         if (fileName != null && fileName.isNotEmpty) {
-                          containsAudio = fileName.toLowerCase().contains('audio');
+                          containsAudio =
+                              fileName.toLowerCase().contains('audio');
                         }
 
                         String username = "";
 
                         return Column(
-                          crossAxisAlignment: isCurrentUserMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                          crossAxisAlignment: isCurrentUserMessage
+                              ? CrossAxisAlignment.end
+                              : CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 10),
                             IntrinsicWidth(
@@ -193,22 +211,41 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                 width: 300,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
-                                  color: containsCheckIn || containsAudio || containsVideo
-                                      ? Colors.grey // If the message contains "check in", make it red
+                                  color: containsCheckIn ||
+                                          containsAudio ||
+                                          containsVideo
+                                      ? Colors
+                                          .grey // If the message contains "check in", make it red
                                       : isCurrentUserMessage
-                                      ? const Color(0xFF66EEEE)// If the message doesn't contain "check in" and it's sent by the current user, make it blue
-                                      : const Color(0xFFECFFB9), // If the message doesn't contain "check in" and it's not sent by the current user, make it white
+                                          ? const Color(
+                                              0xFF66EEEE) // If the message doesn't contain "check in" and it's sent by the current user, make it blue
+                                          : const Color(
+                                              0xFFECFFB9), // If the message doesn't contain "check in" and it's not sent by the current user, make it white
                                 ),
                                 child: ListTile(
                                   title: FutureBuilder(
-                                    future: firestoreFetcher.getUsernameFromSenderId(senderId),
-                                    builder: (BuildContext context, AsyncSnapshot<String?> usernameSnapshot) {
-                                      if (usernameSnapshot.connectionState == ConnectionState.waiting) {
+                                    future: firestoreFetcher
+                                        .getUsernameFromSenderId(senderId),
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<String?>
+                                            usernameSnapshot) {
+                                      if (usernameSnapshot.connectionState ==
+                                          ConnectionState.waiting) {
                                         return const CircularProgressIndicator();
                                       } else {
-                                        if (usernameSnapshot.hasData && usernameSnapshot.data != null) {
+                                        if (usernameSnapshot.hasData &&
+                                            usernameSnapshot.data != null) {
                                           username = usernameSnapshot.data!;
-                                          return Text(username, style: containsCheckIn ? const TextStyle(fontWeight: FontWeight.bold, color: Colors.white) : const TextStyle(fontWeight: FontWeight.bold),);
+                                          return Text(
+                                            username,
+                                            style: containsCheckIn
+                                                ? const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white)
+                                                : const TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                          );
                                         } else {
                                           return const Text('Unknown User');
                                         }
@@ -222,23 +259,36 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                         if (containsJPG)
                                           GestureDetector(
                                             onTap: () {
-                                              _showImageDialog(context, mediaUrl);
-                                              },
+                                              _showImageDialog(
+                                                  context, mediaUrl);
+                                            },
                                             child: SizedBox(
-                                              height: 400, // Adjust the height as needed
+                                              height: 400,
+                                              // Adjust the height as needed
                                               child: Image.network(
                                                 mediaUrl,
-                                                fit: BoxFit.cover, // Adjust the fit of the image
-                                                loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                                                fit: BoxFit.cover,
+                                                // Adjust the fit of the image
+                                                loadingBuilder:
+                                                    (BuildContext context,
+                                                        Widget child,
+                                                        ImageChunkEvent?
+                                                            loadingProgress) {
                                                   if (loadingProgress == null) {
                                                     return child;
                                                   } else {
                                                     return SizedBox(
                                                       height: 400,
                                                       child: Center(
-                                                        child: CircularProgressIndicator(
-                                                          value: loadingProgress.expectedTotalBytes != null
-                                                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                          value: loadingProgress
+                                                                      .expectedTotalBytes !=
+                                                                  null
+                                                              ? loadingProgress
+                                                                      .cumulativeBytesLoaded /
+                                                                  loadingProgress
+                                                                      .expectedTotalBytes!
                                                               : null,
                                                         ),
                                                       ),
@@ -248,40 +298,71 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                               ),
                                             ),
                                           ),
-                                        if (containsVideo)
-                                          GestureDetector(
-                                            onTap: () async{
-                                              Uri uri = Uri.parse(mediaUrl!);
-                                              // Create a VideoPlayerController instance
-                                              final videoPlayerController = VideoPlayerController.networkUrl(uri);
+                                      if (containsVideo)
+                                        GestureDetector(
+                                          onTap: () async {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(const SnackBar(
+                                                    content:
+                                                        Text("Video loading")));
+                                            Uri uri = Uri.parse(mediaUrl!);
+                                            // Create a VideoPlayerController instance
+                                            final videoPlayerController =
+                                                VideoPlayerController
+                                                    .networkUrl(uri);
 
-                                              // Initialize the controller and display a loading indicator while it loads
-                                              await videoPlayerController.initialize().then((_) {
-                                                // Once initialized, show the video in a dialog
-                                                _showVideoDialog(context, videoPlayerController);
-                                              });
-                                            },
-                                            child: SizedBox(
-                                              height: 400, // Adjust the height as needed
-                                              child: Image.asset('assets/images/thumbnailvideo.png'),
+                                            // Initialize the controller and display a loading indicator while it loads
+                                            await videoPlayerController
+                                                .initialize()
+                                                .then((_) {
+                                              // Once initialized, show the video in a dialog
+                                              _showVideoDialog(context,
+                                                  videoPlayerController);
+                                            });
+                                          },
+                                          child: Container(
+                                            height: 300,
+                                            // Adjust the height as needed
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                              child: Image.asset(
+                                                  'assets/images/thumbnailvideo.png'),
                                             ),
                                           ),
+                                        ),
                                       if (containsAudio)
                                         GestureDetector(
                                           onTap: () async {
-                                            await _audioPlayer.setSourceUrl(mediaUrl!);
+                                            await _audioPlayer
+                                                .setSourceUrl(mediaUrl!);
                                             Duration position = Duration.zero;
-                                            Duration? duration = await _audioPlayer.getDuration();
-                                            StreamSubscription<Duration> positionSubscription;
+                                            Duration? duration =
+                                                await _audioPlayer
+                                                    .getDuration();
+                                            StreamSubscription<Duration>
+                                                positionSubscription;
 
-                                            String formatDuration(Duration duration) {
-                                              String twoDigits(int n) => n.toString().padLeft(2, '0');
-                                              String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
-                                              String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+                                            String formatDuration(
+                                                Duration duration) {
+                                              String twoDigits(int n) =>
+                                                  n.toString().padLeft(2, '0');
+                                              String twoDigitMinutes =
+                                                  twoDigits(duration.inMinutes
+                                                      .remainder(60));
+                                              String twoDigitSeconds =
+                                                  twoDigits(duration.inSeconds
+                                                      .remainder(60));
                                               return "$twoDigitMinutes:$twoDigitSeconds";
                                             }
+
                                             print(duration);
-                                            if (duration! > Duration(seconds: 1)){
+                                            if (duration! >
+                                                const Duration(seconds: 1)) {
                                               showDialog(
                                                 context: context,
                                                 builder:
@@ -334,12 +415,21 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                                               },
                                                             ),
                                                             Padding(
-                                                              padding: EdgeInsets.symmetric(horizontal: 16),
-                                                              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .symmetric(
+                                                                      horizontal:
+                                                                          16),
+                                                              child: Row(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .spaceBetween,
                                                                 children: [
                                                                   Text(formatDuration(
                                                                       position)),
-                                                                  Text(formatDuration(duration - position)),
+                                                                  Text(formatDuration(
+                                                                      duration -
+                                                                          position)),
                                                                 ],
                                                               ),
                                                             )
@@ -350,46 +440,66 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                                             onPressed:
                                                                 () async {
                                                               if (!_isPlaying) {
-                                                                await _audioPlayer.setSourceUrl(mediaUrl);
-                                                                await _audioPlayer.resume();
+                                                                await _audioPlayer
+                                                                    .setSourceUrl(
+                                                                        mediaUrl);
+                                                                await _audioPlayer
+                                                                    .resume();
                                                                 setState(() {
-                                                                  _isPlaying = true;
-                                                                  _isPaused = false;
+                                                                  _isPlaying =
+                                                                      true;
+                                                                  _isPaused =
+                                                                      false;
                                                                 });
                                                               } else if (_isPaused) {
-                                                                await _audioPlayer.resume();
+                                                                await _audioPlayer
+                                                                    .resume();
                                                                 setState(() {
-                                                                  _isPaused = false;
+                                                                  _isPaused =
+                                                                      false;
                                                                 });
                                                               }
                                                             },
                                                             child: Text(
-                                                                _isPaused ? 'Resume' : 'Play'),
+                                                                _isPaused
+                                                                    ? 'Resume'
+                                                                    : 'Play'),
                                                           ),
                                                           TextButton(
                                                             onPressed:
                                                                 () async {
                                                               if (_isPlaying &&
                                                                   !_isPaused) {
-                                                                await _audioPlayer.pause();
+                                                                await _audioPlayer
+                                                                    .pause();
                                                                 setState(() {
-                                                                  _isPaused = true;
+                                                                  _isPaused =
+                                                                      true;
                                                                 });
                                                               }
                                                             },
-                                                            child: const Text('Pause'),
+                                                            child: const Text(
+                                                                'Pause'),
                                                           ),
                                                           TextButton(
-                                                            onPressed: () async {
-                                                              await _audioPlayer.stop();
+                                                            onPressed:
+                                                                () async {
+                                                              await _audioPlayer
+                                                                  .stop();
                                                               setState(() {
-                                                                _isPlaying = false;
-                                                                _isPaused = false;
+                                                                _isPlaying =
+                                                                    false;
+                                                                _isPaused =
+                                                                    false;
                                                               });
-                                                              Navigator.of(context).pop(); // Close the dialog
-                                                              positionSubscription.cancel(); // Cancel the subscription when dialog is closed
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(); // Close the dialog
+                                                              positionSubscription
+                                                                  .cancel(); // Cancel the subscription when dialog is closed
                                                             },
-                                                            child: const Text('Stop'),
+                                                            child: const Text(
+                                                                'Stop'),
                                                           ),
                                                         ],
                                                       );
@@ -398,60 +508,88 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                                 },
                                               );
                                             } else {
-                                              await _audioPlayer.setSourceUrl(mediaUrl);
-                                              Duration? duration = await _audioPlayer.getDuration();
+                                              await _audioPlayer
+                                                  .setSourceUrl(mediaUrl);
+                                              Duration? duration =
+                                                  await _audioPlayer
+                                                      .getDuration();
                                               print(duration.toString());
                                               showDialog(
                                                 context: context,
-                                                builder: (BuildContext context) {
+                                                builder:
+                                                    (BuildContext context) {
                                                   return StatefulBuilder(
-                                                    builder: (context, setState) {
+                                                    builder:
+                                                        (context, setState) {
                                                       return AlertDialog(
-                                                        title: Text("$username's SOS Recording"),
-                                                        content: Row(
-                                                          children: [
-                                                          ],
+                                                        title: Text(
+                                                            "$username's SOS Recording"),
+                                                        content: const Row(
+                                                          children: [],
                                                         ),
                                                         actions: [
                                                           TextButton(
-                                                            onPressed: () async {
+                                                            onPressed:
+                                                                () async {
                                                               if (!_isPlaying) {
-                                                                await _audioPlayer.setSourceUrl(mediaUrl);
-                                                                await _audioPlayer.resume();
+                                                                await _audioPlayer
+                                                                    .setSourceUrl(
+                                                                        mediaUrl);
+                                                                await _audioPlayer
+                                                                    .resume();
                                                                 setState(() {
-                                                                  _isPlaying = true;
-                                                                  _isPaused = false;
+                                                                  _isPlaying =
+                                                                      true;
+                                                                  _isPaused =
+                                                                      false;
                                                                 });
                                                               } else if (_isPaused) {
-                                                                await _audioPlayer.resume();
+                                                                await _audioPlayer
+                                                                    .resume();
                                                                 setState(() {
-                                                                  _isPaused = false;
+                                                                  _isPaused =
+                                                                      false;
                                                                 });
                                                               }
                                                             },
-                                                            child: Text(_isPaused ? 'Resume' : 'Play'),
+                                                            child: Text(
+                                                                _isPaused
+                                                                    ? 'Resume'
+                                                                    : 'Play'),
                                                           ),
                                                           TextButton(
-                                                            onPressed: () async {
-                                                              if (_isPlaying && !_isPaused) {
-                                                                await _audioPlayer.pause();
+                                                            onPressed:
+                                                                () async {
+                                                              if (_isPlaying &&
+                                                                  !_isPaused) {
+                                                                await _audioPlayer
+                                                                    .pause();
                                                                 setState(() {
-                                                                  _isPaused = true;
+                                                                  _isPaused =
+                                                                      true;
                                                                 });
                                                               }
                                                             },
-                                                            child: const Text('Pause'),
+                                                            child: const Text(
+                                                                'Pause'),
                                                           ),
                                                           TextButton(
-                                                            onPressed: () async {
-                                                              await _audioPlayer.stop();
+                                                            onPressed:
+                                                                () async {
+                                                              await _audioPlayer
+                                                                  .stop();
                                                               setState(() {
-                                                                _isPlaying = false;
-                                                                _isPaused = false;
+                                                                _isPlaying =
+                                                                    false;
+                                                                _isPaused =
+                                                                    false;
                                                               });
-                                                              Navigator.of(context).pop(); // Close the dialog
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(); // Close the dialog
                                                             },
-                                                            child: const Text('Stop'),
+                                                            child: const Text(
+                                                                'Stop'),
                                                           ),
                                                         ],
                                                       );
@@ -462,58 +600,86 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                             }
                                           },
                                           child: SizedBox(
-                                            // height: 400, // Adjust the height as needed
-                                            child: Image.asset('assets/images/thumbnail_audio.png'),
+                                            height: 50,
+                                            child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(15),
+                                                child: Image.asset(
+                                                    'assets/images/thumbnail_audio.png')),
                                           ),
                                         ),
                                       if (containsCheckIn || containsMedia)
                                         Row(
                                           children: [
                                             Container(
-                                              margin: const EdgeInsets.symmetric(vertical: 5),
+                                              margin:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 5),
                                               decoration: const BoxDecoration(
                                                   color: Colors.blue,
-                                                  borderRadius: BorderRadius.all(Radius.circular(15))
-                                              ),
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                          Radius.circular(15))),
                                               child: IconButton(
                                                   onPressed: () async {
-                                                    String googleMapsUrl = "https://www.google.com/maps?q=@$latitude,$longitude,17z"; // Replace with your pre-defined link
-                                                    Uri link = Uri.parse(googleMapsUrl);
-                                                    if (await canLaunchUrl(link)) {
+                                                    String googleMapsUrl =
+                                                        "https://www.google.com/maps?q=@$latitude,$longitude,17z"; // Replace with your pre-defined link
+                                                    Uri link = Uri.parse(
+                                                        googleMapsUrl);
+                                                    if (await canLaunchUrl(
+                                                        link)) {
                                                       await launchUrl(link);
                                                     } else {
                                                       throw 'Could not launch $googleMapsUrl';
                                                     }
                                                   },
-                                                  icon: const Icon(Icons.location_on, color: Colors.white,)
-                                              ),
+                                                  icon: const Icon(
+                                                    Icons.location_on,
+                                                    color: Colors.white,
+                                                  )),
                                             ),
-                                            const SizedBox(width: 10,),
+                                            const SizedBox(
+                                              width: 10,
+                                            ),
                                             if (containsMedia)
                                               Container(
-                                                margin: const EdgeInsets.symmetric(vertical: 5),
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 5),
                                                 decoration: const BoxDecoration(
                                                     color: Colors.green,
-                                                    borderRadius: BorderRadius.all(Radius.circular(15))
-                                                ),
+                                                    borderRadius:
+                                                        BorderRadius.all(
+                                                            Radius.circular(
+                                                                15))),
                                                 child: IconButton(
                                                     onPressed: () async {
-                                                      firestoreFetcher.downloadImage(mediaUrl, mediaUrl);
+                                                      firestoreFetcher
+                                                          .downloadImage(
+                                                              mediaUrl,
+                                                              mediaUrl);
                                                     },
-                                                    icon: const Icon(Icons.download, color: Colors.white,)
-                                                ),
+                                                    icon: const Icon(
+                                                      Icons.download,
+                                                      color: Colors.white,
+                                                    )),
                                               ),
                                           ],
                                         ),
                                       // Apply bold style if the message contains "check in"
                                       Text(
                                         message,
-                                        style: containsCheckIn || containsAudio || containsVideo? const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white) : const TextStyle(fontSize: 15),
+                                        style: containsCheckIn ||
+                                                containsAudio ||
+                                                containsVideo
+                                            ? const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white)
+                                            : const TextStyle(fontSize: 15),
                                       ),
                                       Align(
                                           alignment: Alignment.centerRight,
-                                          child: Text(time)
-                                      ),
+                                          child: Text(time)),
                                     ],
                                   ),
                                 ),
@@ -528,7 +694,7 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(3.0),
+              padding: const EdgeInsets.all(5.0),
               child: Row(
                 children: [
                   Expanded(
@@ -539,18 +705,44 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                         filled: true,
                         enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(30)),
-                            borderSide: BorderSide(color: Colors.blue)
-                        ),
+                            borderSide: BorderSide(color: Colors.grey)),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(30)),
-                          borderSide: BorderSide(color: Colors.blue),
+                          borderSide: BorderSide(color: theme),
                         ),
                         hintText: 'Enter your message...',
                       ),
                     ),
                   ),
+                  PopupMenuButton<int>(
+                    offset: const Offset(0, -125),
+                    icon: const Icon(Icons.add_circle_outline, color: theme),
+                    onSelected: (value) {
+                      // Handle menu selection here
+                      if (value == 1) {
+                        firestoreFetcher.checkIn(widget.circleName, userId, context);
+                      } else if (value == 2) {
+                        // Do something for the second option
+                      }
+                      // Add more conditions if you have more options
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 1,
+                        child: Text("Check In"),
+                      ),
+                      PopupMenuItem(
+                        value: 2,
+                        child: Text("Quick Capture"),
+                      ),
+                      // Add more items if needed
+                    ],
+                  ),
                   IconButton(
-                    icon: const Icon(Icons.send, color: Colors.blue,),
+                    icon: const Icon(
+                      Icons.send,
+                      color: theme,
+                    ),
                     onPressed: () {
                       _sendMessage();
                     },
@@ -585,7 +777,11 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
       });
 
       // Add the message to Firestore
-      FirebaseFirestore.instance.collection('circles').doc(widget.circleName).collection('messages').add({
+      FirebaseFirestore.instance
+          .collection('circles')
+          .doc(widget.circleName)
+          .collection('messages')
+          .add({
         'senderId': senderId,
         'message': _messageController.text,
         'timestamp': Timestamp.now(),
@@ -595,7 +791,8 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
       }).catchError((error) {
         print("Failed to send message: $error");
       });
-      await firestoreFetcher.sendFCMNotification(senderId, widget.circleName, _messageController.text);
+      await firestoreFetcher.sendFCMNotification(
+          senderId, widget.circleName, _messageController.text);
     }
   }
 
@@ -605,16 +802,22 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
       context: context,
       builder: (BuildContext context) {
         return StreamBuilder<DocumentSnapshot>(
-          stream: FirebaseFirestore.instance.collection('circles').doc(widget.circleName).snapshots(),
-          builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+          stream: FirebaseFirestore.instance
+              .collection('circles')
+              .doc(widget.circleName)
+              .snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
             if (!snapshot.hasData) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             }
 
             var circleData = snapshot.data!.data() as Map<String, dynamic>?;
 
             // Check if circleData is not null and if 'members' array exists
-            var members = circleData != null ? (circleData['members'] as List<dynamic>?) : null;
+            var members = circleData != null
+                ? (circleData['members'] as List<dynamic>?)
+                : null;
 
             return Container(
               padding: const EdgeInsets.all(10),
@@ -622,77 +825,111 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    Text(
+                    const Text(
                       "Circle Details",
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                     ),
                     const Divider(),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     // Example of accessing userid for each member in the array
-                    if (members != null) // Check if members is not null before using it
+                    if (members !=
+                        null) // Check if members is not null before using it
                       ListView.builder(
                         shrinkWrap: true,
                         itemCount: members.length,
                         itemBuilder: (BuildContext context, int index) {
-                          var userid = members[index]; // Adjust the field name as per your Firestore structure
+                          var userid = members[
+                              index]; // Adjust the field name as per your Firestore structure
                           // Asynchronously fetch username from Firestore based on userid
                           return FutureBuilder<String?>(
-                            future: firestoreFetcher.getUsernameFromSenderId(userid),
+                            future: firestoreFetcher
+                                .getUsernameFromSenderId(userid),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return CircularProgressIndicator(); // While fetching data, show a loading indicator
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const CircularProgressIndicator(); // While fetching data, show a loading indicator
                               } else if (snapshot.hasError) {
                                 return Text('Error: ${snapshot.error}');
                               } else {
-                                String username = snapshot.data ?? 'Unknown'; // Default to 'Unknown' if username not found
+                                String username = snapshot.data ??
+                                    'Unknown'; // Default to 'Unknown' if username not found
                                 return Column(
                                   children: [
                                     const SizedBox(height: 10),
                                     Container(
-                                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
                                       child: ExpansionTile(
-                                        shape: Border.all(color: Colors.transparent),
+                                        shape: Border.all(
+                                            color: Colors.transparent),
                                         title: Text(username),
                                         iconColor: Colors.white,
                                         textColor: Colors.white,
-                                        collapsedBackgroundColor: Colors.grey[300],
-                                        backgroundColor: Colors.blueAccent,
-                                        trailing: Icon(Icons.expand_more),
+                                        collapsedBackgroundColor:
+                                            Colors.grey[300],
+                                        backgroundColor: theme,
+                                        trailing: const Icon(Icons.expand_more),
                                         children: [
                                           FutureBuilder(
                                             future: FirebaseFirestore.instance
                                                 .collection('circles')
                                                 .doc(widget.circleName)
                                                 .collection('checkin')
-                                                .where('senderId', isEqualTo: userid) // Adjust 'userId' to your actual field name
-                                                .orderBy('timestamp', descending: true)
+                                                .where('senderId',
+                                                    isEqualTo:
+                                                        userid) // Adjust 'userId' to your actual field name
+                                                .orderBy('timestamp',
+                                                    descending: true)
                                                 .get(),
-                                            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                                return Center(child: CircularProgressIndicator());
+                                            builder: (BuildContext context,
+                                                AsyncSnapshot<QuerySnapshot>
+                                                    snapshot) {
+                                              if (snapshot.connectionState ==
+                                                  ConnectionState.waiting) {
+                                                return const Center(
+                                                    child:
+                                                        CircularProgressIndicator());
                                               }
                                               if (snapshot.hasError) {
-                                                return Center(child: Text('Error: ${snapshot.error}'));
+                                                return Center(
+                                                    child: Text(
+                                                        'Error: ${snapshot.error}'));
                                               }
-                                              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                                                return Text('No check-ins found.');
+                                              if (!snapshot.hasData ||
+                                                  snapshot.data!.docs.isEmpty) {
+                                                return const Text(
+                                                    'No check-ins found.');
                                               }
                                               return Container(
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
-                                                  border: Border.all(color: const Color(0xFF66EEEE)),
+                                                  border: Border.all(
+                                                      color: const Color(
+                                                          0xFF66EEEE)),
                                                 ),
                                                 height: 300,
                                                 child: ListView.builder(
                                                   shrinkWrap: true,
-                                                  itemCount: snapshot.data!.docs.length,
-                                                  itemBuilder: (context, index) {
-
-                                                    var checkIn = snapshot.data!.docs[index];
-                                                    var coordinate = checkIn['location'] as GeoPoint;
-                                                    var timestamp = checkIn['timestamp'] as Timestamp;
-                                                    var dateTime = timestamp.toDate();
-                                                    String formattedDate = DateFormat('h:mm a, d MMMM yyyy').format(dateTime);
+                                                  itemCount: snapshot
+                                                      .data!.docs.length,
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    var checkIn = snapshot
+                                                        .data!.docs[index];
+                                                    var coordinate =
+                                                        checkIn['location']
+                                                            as GeoPoint;
+                                                    var timestamp =
+                                                        checkIn['timestamp']
+                                                            as Timestamp;
+                                                    var dateTime =
+                                                        timestamp.toDate();
+                                                    String formattedDate =
+                                                        DateFormat(
+                                                                'h:mm a, d MMMM yyyy')
+                                                            .format(dateTime);
 
                                                     // firestoreFetcher.getAddressFromCoordinates(coordinate.latitude, coordinate.longitude).then((address) {
                                                     //   if (address != null) {
@@ -706,21 +943,32 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                                     return Column(
                                                       children: [
                                                         ListTile(
-                                                          title: Text('Check-in at ${coordinate.latitude},${coordinate.longitude}'),
-                                                          subtitle: Text(formattedDate),
-                                                          trailing: IconButton(
-                                                              onPressed: () async {
-                                                                String googleMapsUrl = "https://www.google.com/maps?q=@${coordinate.latitude},${coordinate.longitude},17z"; // Replace with your pre-defined link
-                                                                Uri link = Uri.parse(googleMapsUrl);
-                                                                if (await canLaunchUrl(link)) {
-                                                                  await launchUrl(link);
-                                                                } else {
-                                                                  throw 'Could not launch $googleMapsUrl';
-                                                                }
-                                                              },
-                                                              icon: Icon(Icons.location_on))
-                                                        ),
-                                                        Divider(),
+                                                            title: Text(
+                                                                'Check-in at ${coordinate.latitude},${coordinate.longitude}'),
+                                                            subtitle: Text(
+                                                                formattedDate),
+                                                            trailing:
+                                                                IconButton(
+                                                                    onPressed:
+                                                                        () async {
+                                                                      String
+                                                                          googleMapsUrl =
+                                                                          "https://www.google.com/maps?q=@${coordinate.latitude},${coordinate.longitude},17z"; // Replace with your pre-defined link
+                                                                      Uri link =
+                                                                          Uri.parse(
+                                                                              googleMapsUrl);
+                                                                      if (await canLaunchUrl(
+                                                                          link)) {
+                                                                        await launchUrl(
+                                                                            link);
+                                                                      } else {
+                                                                        throw 'Could not launch $googleMapsUrl';
+                                                                      }
+                                                                    },
+                                                                    icon: const Icon(
+                                                                        Icons
+                                                                            .location_on))),
+                                                        const Divider(),
                                                       ],
                                                     );
                                                   },
@@ -747,12 +995,11 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
       },
     );
   }
-
 }
 
-void _showVideoDialog(BuildContext context, VideoPlayerController videoPlayerController) async {
+void _showVideoDialog(
+    BuildContext context, VideoPlayerController videoPlayerController) async {
   try {
-
     // Initialize video player
     await videoPlayerController.initialize();
     videoPlayerController.setLooping(true);
@@ -781,12 +1028,16 @@ void _showVideoDialog(BuildContext context, VideoPlayerController videoPlayerCon
                   child: Row(
                     children: [
                       Icon(
-                        videoPlayerController.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                        videoPlayerController.value.isPlaying
+                            ? Icons.pause
+                            : Icons.play_arrow,
                         color: Colors.white,
                         size: 36.0,
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close,),
+                        icon: const Icon(
+                          Icons.close,
+                        ),
                         color: Colors.white,
                         onPressed: () {
                           Navigator.of(context).pop();

@@ -19,7 +19,7 @@ class CustomNavigationBar extends StatelessWidget {
       data: NavigationBarThemeData(
         labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>(
               (Set<WidgetState> states) => states.contains(WidgetState.selected)
-              ? const TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.bold)
+              ? const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.bold)
               : const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w500),
         ),
       ),

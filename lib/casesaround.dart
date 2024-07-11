@@ -15,6 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 const Color theme = Colors.red;
+const Color sectheme = Colors.white;
 
 class CasesAround extends StatefulWidget {
   const CasesAround({super.key});
@@ -35,7 +36,8 @@ class _CasesAroundState extends State<CasesAround> {
           Navigator.push(
             context,
             PageRouteBuilder(
-              pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+              pageBuilder: (BuildContext context, Animation<double> animation1,
+                  Animation<double> animation2) {
                 return const Home();
               },
               transitionDuration: Duration.zero,
@@ -47,7 +49,8 @@ class _CasesAroundState extends State<CasesAround> {
           Navigator.push(
             context,
             PageRouteBuilder(
-              pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+              pageBuilder: (BuildContext context, Animation<double> animation1,
+                  Animation<double> animation2) {
                 return const SOSPage();
               },
               transitionDuration: Duration.zero,
@@ -59,7 +62,8 @@ class _CasesAroundState extends State<CasesAround> {
           Navigator.push(
             context,
             PageRouteBuilder(
-              pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+              pageBuilder: (BuildContext context, Animation<double> animation1,
+                  Animation<double> animation2) {
                 return const Circles();
               },
               transitionDuration: Duration.zero,
@@ -73,7 +77,8 @@ class _CasesAroundState extends State<CasesAround> {
           Navigator.push(
             context,
             PageRouteBuilder(
-              pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
+              pageBuilder: (BuildContext context, Animation<double> animation1,
+                  Animation<double> animation2) {
                 return const ProfilePage();
               },
               transitionDuration: Duration.zero,
@@ -92,10 +97,10 @@ class _CasesAroundState extends State<CasesAround> {
         return AlertDialog(
           title: const Text("Help"),
           content: const Text(
-              "Only cities with cases are listed.\n"
-                  "Green: 1-2 cases\n"
-                  "Yellow: 3-4 cases\n"
-                  "Red: 5 or more cases",
+            "Only cities with cases are listed.\n"
+            "Green: 1-2 cases\n"
+            "Yellow: 3-4 cases\n"
+            "Red: 5 or more cases",
             style: TextStyle(fontSize: 15),
           ),
           actions: <Widget>[
@@ -107,7 +112,6 @@ class _CasesAroundState extends State<CasesAround> {
             ),
           ],
         );
-
       },
     );
   }
@@ -117,158 +121,206 @@ class _CasesAroundState extends State<CasesAround> {
     return Scaffold(
         backgroundColor: Color(0xFFF4F3F2),
         appBar: AppBar(
-        title: const Text(
-          'Cases Around',
-          style: TextStyle(color: theme, fontWeight: FontWeight.bold),
-        ),
-        automaticallyImplyLeading: false,
-        actions: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.info_outline, color: Colors.black87,),
-                onPressed: () {
-                  _showHelpDialog(context);
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.airline_seat_recline_extra_sharp, color: Colors.blue,),
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => CasesAroundDistrict())
-                  );
-                },
-              ),
-            ],
+          backgroundColor: theme,
+          title: const Text(
+            'Cases Around',
+            style: TextStyle(color: sectheme, fontWeight: FontWeight.bold),
           ),
-        ],
-      ),
-
-      body: Container(
-        padding: const EdgeInsets.all(16.0),
-        child: FutureBuilder(
-          future: FirebaseFirestore.instance.collection('reports').get(),
-          builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else {
-              final reports = snapshot.data!.docs;
-              // Clear set to avoid duplicates when rebuilding
-              uniqueCities.clear();
-              cityOccurrences.clear(); // Clear cityOccurrences map
-              for (var report in reports) {
-                // Preprocess city name before adding to set
-                String cityName = report['city'];
-                if (cityName.toLowerCase() == 'malacca') {
-                  cityName = 'Malacca City'; // Treat 'Malacca' as 'Melaka'
-                }
-                if (cityName.toLowerCase() == 'melaka') {
-                  cityName = 'Malacca City'; // Treat 'Malacca' as 'Melaka'
-                }
-                uniqueCities.add(cityName);
-                // Update cityOccurrences map
-                if (cityOccurrences.containsKey(cityName)) {
-                  cityOccurrences[cityName] = cityOccurrences[cityName]! + 1;
-                } else {
-                  cityOccurrences[cityName] = 1;
-                }
-              }
-              final cityList = uniqueCities.toList();
-              // Add a blank city to the end if the city list has an odd number of elements
-              if (cityList.length % 2 != 0) {
-                cityList.add('');
-              }
-              return ListView.builder(
-                itemCount: (cityList.length / 2).ceil(), // Calculate number of rows
-                itemBuilder: (context, index) {
-                  final int startIndex = index * 2;
-                  final int endIndex = startIndex + 2;
-                  final List<String> rowCities = cityList.sublist(startIndex, endIndex);
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: rowCities.map((cityName) {
-                      final int cases = cityOccurrences[cityName] ?? 0;
-                      final bool highCases = cases > 4;
-                      final bool midCases = cases > 2;
-                      Color color = highCases ? Color(0xffF88379) : midCases ? const Color(0xFFFFFAA0) : const Color(0xFFF1E3C8);
-                      Color style = highCases ? Colors.white : midCases ? const Color(0xFF04234D) : const Color(0xFF04234D);
-                      return Expanded (
-                        child: cityName.isNotEmpty
-                            ?
-                        GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => CityDetailsPage(cityName: cityName, color: color, style: style, totalCases: cityOccurrences[cityName]!)),
-                              );
-                            },
-                            child: Container(
-                              height: 120, // Specify a fixed height for the container
-                              padding: const EdgeInsets.all(16.0),
-                              margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                              decoration: BoxDecoration(
-                                color: color,
-                                borderRadius: BorderRadius.circular(10.0),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.8),
-                                    spreadRadius: 1,
-                                    blurRadius: 5,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    cityName,
-                                    style: TextStyle(color: highCases ? Color(0xFF04234D) : midCases ? const Color(0xFF04234D) : const Color(0xFF04234D), fontSize: 20, fontWeight: FontWeight.bold),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Text(
-                                    "Cases: ${cityOccurrences[cityName] ?? 0}", // Display the number of occurrences
-                                    style: TextStyle(color: highCases ? Color(0xFF04234D) : midCases ? const Color(0xFF04234D) : const Color(0xFF04234D), fontSize: 20, fontWeight: FontWeight.bold),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            )
-                        ) :
-                        Container(
-                          height: 120, // Specify a fixed height for the container
-                          padding: const EdgeInsets.all(16.0),
-                          margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                          decoration: BoxDecoration(
-                            color: highCases ? Colors.red : const Color(0xFFFAF4F4),
-                            borderRadius: BorderRadius.circular(10.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
-                                spreadRadius: 1,
-                                blurRadius: 5,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Image.asset("assets/images/icon_red.png"),
-                        ),
-                      );
-                    }).toList(),
-                  );
-                },
-              );
-
-            }
-          },
+          automaticallyImplyLeading: false,
+          actions: [
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.info_outline,
+                    color: sectheme,
+                  ),
+                  onPressed: () {
+                    _showHelpDialog(context);
+                  },
+                ),
+                // IconButton(
+                //   icon: const Icon(
+                //     Icons.airline_seat_recline_extra_sharp,
+                //     color: Colors.blue,
+                //   ),
+                //   onPressed: () {
+                //     Navigator.push(
+                //         context,
+                //         MaterialPageRoute(
+                //             builder: (context) => CasesAroundDistrict()));
+                //   },
+                // ),
+              ],
+            ),
+          ],
         ),
-      ),
-      bottomNavigationBar: CustomNavigationBar(currentPageIndex: currentPageIndex, onItemTapped: onItemTapped)
-    );
+        body: Container(
+          padding: const EdgeInsets.only(left: 8, right: 8,),
+          child: FutureBuilder(
+            future: FirebaseFirestore.instance.collection('reports').get(),
+            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else {
+                final reports = snapshot.data!.docs;
+                // Clear set to avoid duplicates when rebuilding
+                uniqueCities.clear();
+                cityOccurrences.clear(); // Clear cityOccurrences map
+                for (var report in reports) {
+                  // Preprocess city name before adding to set
+                  String cityName = report['city'];
+                  if (cityName.toLowerCase() == 'malacca') {
+                    cityName = 'Malacca City'; // Treat 'Malacca' as 'Melaka'
+                  }
+                  if (cityName.toLowerCase() == 'melaka') {
+                    cityName = 'Malacca City'; // Treat 'Malacca' as 'Melaka'
+                  }
+                  uniqueCities.add(cityName);
+                  // Update cityOccurrences map
+                  if (cityOccurrences.containsKey(cityName)) {
+                    cityOccurrences[cityName] = cityOccurrences[cityName]! + 1;
+                  } else {
+                    cityOccurrences[cityName] = 1;
+                  }
+                }
+                final cityList = uniqueCities.toList();
+                // Add a blank city to the end if the city list has an odd number of elements
+                if (cityList.length % 2 != 0) {
+                  cityList.add('');
+                }
+                return ListView.builder(
+                  itemCount: (cityList.length / 2).ceil(),
+                  // Calculate number of rows
+                  itemBuilder: (context, index) {
+                    final int startIndex = index * 2;
+                    final int endIndex = startIndex + 2;
+                    final List<String> rowCities =
+                        cityList.sublist(startIndex, endIndex);
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: rowCities.map((cityName) {
+                        final int cases = cityOccurrences[cityName] ?? 0;
+                        final bool highCases = cases > 4;
+                        final bool midCases = cases > 2;
+                        Color color = highCases
+                            ? Color(0xffF88379)
+                            : midCases
+                                ? const Color(0xFFFFFAA0)
+                                : const Color(0xFFF1E3C8);
+                        Color style = highCases
+                            ? Colors.white
+                            : midCases
+                                ? const Color(0xFF04234D)
+                                : const Color(0xFF04234D);
+                        return Expanded(
+                          child: cityName.isNotEmpty
+                              ? GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => CityDetailsPage(
+                                              cityName: cityName,
+                                              color: color,
+                                              style: style,
+                                              totalCases: cityOccurrences[cityName]!
+                                          )
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    height: 120,
+                                    // Specify a fixed height for the container
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 8.0, horizontal: 4.0),
+                                    decoration: BoxDecoration(
+                                      color: color,
+                                      borderRadius: BorderRadius.circular(10.0),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.8),
+                                          spreadRadius: 1,
+                                          blurRadius: 5,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            cityName,
+                                            style: TextStyle(
+                                                color: highCases
+                                                    ? Color(0xFF04234D)
+                                                    : midCases
+                                                        ? const Color(0xFF04234D)
+                                                        : const Color(0xFF04234D),
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Text(
+                                            "Cases: ${cityOccurrences[cityName] ?? 0}",
+                                            // Display the number of occurrences
+                                            style: TextStyle(
+                                                color: highCases
+                                                    ? Color(0xFF04234D)
+                                                    : midCases
+                                                        ? const Color(0xFF04234D)
+                                                        : const Color(0xFF04234D),
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ))
+                              : Container(
+                                  height: 120,
+                                  // Specify a fixed height for the container
+                                  padding: const EdgeInsets.all(16.0),
+                                  margin: const EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 4.0),
+                                  decoration: BoxDecoration(
+                                    color: highCases
+                                        ? Colors.red
+                                        : const Color(0xFFFAF4F4),
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.5),
+                                        spreadRadius: 1,
+                                        blurRadius: 5,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child:
+                                      Image.asset("assets/images/icon_red.png"),
+                                ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                );
+              }
+            },
+          ),
+        ),
+        bottomNavigationBar: CustomNavigationBar(
+            currentPageIndex: currentPageIndex, onItemTapped: onItemTapped));
   }
 }
 
@@ -278,7 +330,12 @@ class CityDetailsPage extends StatefulWidget {
   final Color style;
   final int totalCases;
 
-  CityDetailsPage({super.key, required this.cityName, required this.color, required this.style, required this.totalCases});
+  CityDetailsPage(
+      {super.key,
+      required this.cityName,
+      required this.color,
+      required this.style,
+      required this.totalCases});
 
   @override
   State<CityDetailsPage> createState() => _CityDetailsPageState();
@@ -295,14 +352,16 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
           child: Image.network(
             imageUrl,
             fit: BoxFit.contain,
-            loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+            loadingBuilder: (BuildContext context, Widget child,
+                ImageChunkEvent? loadingProgress) {
               if (loadingProgress == null) {
                 return child;
               } else {
                 return Center(
                   child: CircularProgressIndicator(
                     value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
                         : null,
                   ),
                 );
@@ -316,7 +375,6 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-
     String statusText;
 
     if (widget.totalCases <= 2) {
@@ -330,13 +388,19 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
     return Scaffold(
       backgroundColor: Color(0xFFD5D3D3),
       appBar: AppBar(
+        backgroundColor: theme,
         title: Row(
           children: [
             Text(
               widget.cityName,
-              style: TextStyle(color: theme, fontWeight: FontWeight.bold,),
+              style: TextStyle(
+                color: sectheme,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(width: 10,),
+            SizedBox(
+              width: 10,
+            ),
             Container(
               padding: EdgeInsets.all(8.0),
               decoration: BoxDecoration(
@@ -344,26 +408,29 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                 borderRadius: BorderRadius.circular(40),
               ),
               child: Text(
-                  statusText,
-                style: TextStyle(color: widget.style, fontWeight: FontWeight.bold, fontSize: 17),
+                statusText,
+                style: TextStyle(
+                    color: widget.style,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17),
               ),
             ),
           ],
         ),
         actions: [
           Row(
-            children: [
-
-            ],
+            children: [],
           )
         ],
-        iconTheme: IconThemeData(color: theme),
+        iconTheme: IconThemeData(color: sectheme),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('reports')
             .where('city', isEqualTo: widget.cityName)
-            .orderBy('timeStamp', descending: true) // Sort documents by timestamp in descending order
+            .orderBy('timeStamp',
+                descending:
+                    true) // Sort documents by timestamp in descending order
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -373,7 +440,8 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
           } else {
             final reports = snapshot.data!.docs;
             if (reports.isEmpty) {
-              return Center(child: Text('No reports available for ${widget.cityName}'));
+              return Center(
+                  child: Text('No reports available for ${widget.cityName}'));
             }
             return ListView.builder(
               itemCount: reports.length,
@@ -384,9 +452,9 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                 String? desc;
                 try {
                   desc = report['description'] as String?;
-                 if (desc!.isEmpty) {
-                   desc = "No description available";
-                 }
+                  if (desc!.isEmpty) {
+                    desc = "No description available";
+                  }
                 } catch (error) {
                   desc = "No description available";
                 }
@@ -395,10 +463,13 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                 String imageUrl = report['mediaUrl'];
                 String location = report['location'];
                 String mediaFileName = report['mediaFileName'];
-                String formattedDateTime = DateFormat('dd MMMM yyyy, hh:mm a').format(timestamp.toDate());
-                Future<String?> getAddressFromCoordinates(double latitude, double longitude) async {
+                String formattedDateTime = DateFormat('dd MMMM yyyy, hh:mm a')
+                    .format(timestamp.toDate());
+                Future<String?> getAddressFromCoordinates(
+                    double latitude, double longitude) async {
                   try {
-                    List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+                    List<Placemark> placemarks =
+                        await placemarkFromCoordinates(latitude, longitude);
                     Placemark place = placemarks[0];
 
                     List<String?> addressParts = [
@@ -411,8 +482,11 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                     ];
 
                     // Filter out null values and join the non-null values with commas
-                    String address = addressParts.where((part) => part != null && part.isNotEmpty).join(', ');
-                    print('${place.name}, ${place.isoCountryCode},${place.country},${place.postalCode},${place.administrativeArea},${place.subAdministrativeArea},${place.locality},${place.subLocality}, ${place.thoroughfare}, ${place.subThoroughfare}');
+                    String address = addressParts
+                        .where((part) => part != null && part.isNotEmpty)
+                        .join(', ');
+                    print(
+                        '${place.name}, ${place.isoCountryCode},${place.country},${place.postalCode},${place.administrativeArea},${place.subAdministrativeArea},${place.locality},${place.subLocality}, ${place.thoroughfare}, ${place.subThoroughfare}');
 
                     return address;
                   } catch (e) {
@@ -420,42 +494,52 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                     return null;
                   }
                 }
+
                 List<String> locationParts = location.split(',');
                 double latitude = double.parse(locationParts[0]);
                 double longitude = double.parse(locationParts[1]);
-                User? user = FirebaseAuth.instance.currentUser; // Get the current user
+                User? user =
+                    FirebaseAuth.instance.currentUser; // Get the current user
 
                 Widget imageWidget = imageUrl != null
                     ? mediaFileName.toLowerCase().endsWith('.mp4')
-                    ? SizedBox(
-                  child: Image.asset('assets/images/thumbnailvideo_horizontal.png'),
-                )
-                    : Image.network(
-                  imageUrl,
-                  width: double.infinity,
-                  height: 200,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                    if (loadingProgress == null) {
-                      return child;
-                    } else {
-                      return SizedBox(
-                        height: 200,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                )
+                        ? SizedBox(
+                            child: Image.asset(
+                                'assets/images/thumbnailvideo_horizontal.png'),
+                          )
+                        : Image.network(
+                            imageUrl,
+                            width: double.infinity,
+                            height: 200,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (BuildContext context, Widget child,
+                                ImageChunkEvent? loadingProgress) {
+                              if (loadingProgress == null) {
+                                return child;
+                              } else {
+                                return SizedBox(
+                                  height: 200,
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      value:
+                                          loadingProgress.expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  loadingProgress
+                                                      .expectedTotalBytes!
+                                              : null,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                          )
                     : Container();
 
                 return Container(
-                  margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 8.0), // Add margin here
+                  margin: const EdgeInsets.symmetric(
+                      vertical: 5.0, horizontal: 8.0), // Add margin here
                   child: Container(
                     padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
@@ -501,9 +585,12 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return Column(
-                                      mainAxisSize: MainAxisSize.min, // Ensure the Column only occupies the space it needs
+                                      mainAxisSize: MainAxisSize.min,
+                                      // Ensure the Column only occupies the space it needs
                                       children: <Widget>[
-                                        const SizedBox(height: 10,),
+                                        const SizedBox(
+                                          height: 10,
+                                        ),
                                         ListTile(
                                           leading: const Icon(
                                             Icons.download,
@@ -511,10 +598,13 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                           ),
                                           title: const Text(
                                             'Download Image',
-                                            style: TextStyle(fontSize: 17), // Adjust the font size
+                                            style: TextStyle(
+                                                fontSize: 17,
+                                            ), // Adjust the font size
                                           ),
                                           onTap: () {
-                                            _firestoreFetcher.downloadImage(imageUrl, mediaFileName);
+                                            _firestoreFetcher.downloadImage(
+                                                imageUrl, mediaFileName);
                                             Navigator.of(context).pop();
                                           },
                                         ),
@@ -522,11 +612,14 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                         ListTile(
                                           leading: const Icon(
                                             Icons.info_outline,
-                                            size: 33, // Adjust the size of the icon
+                                            size:
+                                                33, // Adjust the size of the icon
                                           ),
                                           title: const Text(
                                             'See details',
-                                            style: TextStyle(fontSize: 17), // Adjust the font size
+                                            style: TextStyle(
+                                                fontSize:
+                                                    17), // Adjust the font size
                                           ),
                                           onTap: () {
                                             Navigator.pop(context);
@@ -536,145 +629,229 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                               builder: (BuildContext context) {
                                                 return Container(
                                                   height: 500,
-                                                  padding: const EdgeInsets.all(16.0),
+                                                  padding: const EdgeInsets.all(
+                                                      16.0),
                                                   child: SingleChildScrollView(
                                                     child: Column(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         ListTile(
                                                           title: Center(
-                                                                  child: Text(
-                                                                    caseType,
-                                                                    style: const TextStyle(
-                                                                      fontSize: 30,
-                                                                      fontWeight: FontWeight.bold,
-                                                                    ),
-                                                                  ),
-                                                                ),
+                                                            child: Text(
+                                                              caseType,
+                                                              style:
+                                                                  const TextStyle(
+                                                                fontSize: 30,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
                                                               ),
+                                                            ),
+                                                          ),
+                                                        ),
                                                         const Text(
                                                           'Description: ',
                                                           style: TextStyle(
-                                                            fontWeight: FontWeight.bold,
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                             fontSize: 15,
                                                           ),
                                                         ),
                                                         Text(
                                                           desc!,
-                                                          style: const TextStyle(fontSize: 20),
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize: 20),
                                                         ),
-                                                        const SizedBox(height: 8.0),
+                                                        const SizedBox(
+                                                            height: 8.0),
                                                         const Text(
                                                           'Location',
                                                           style: TextStyle(
-                                                            fontWeight: FontWeight.bold,
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                             fontSize: 15,
                                                           ),
                                                         ),
                                                         FutureBuilder(
-                                                          future: getAddressFromCoordinates(latitude, longitude),
-                                                          builder: (context, AsyncSnapshot<String?> addressSnapshot) {
-                                                            if (addressSnapshot.connectionState == ConnectionState.waiting) {
-                                                              return const SizedBox.shrink(); // Return empty space while waiting for address
+                                                          future:
+                                                              getAddressFromCoordinates(
+                                                                  latitude,
+                                                                  longitude),
+                                                          builder: (context,
+                                                              AsyncSnapshot<
+                                                                      String?>
+                                                                  addressSnapshot) {
+                                                            if (addressSnapshot
+                                                                    .connectionState ==
+                                                                ConnectionState
+                                                                    .waiting) {
+                                                              return const SizedBox
+                                                                  .shrink(); // Return empty space while waiting for address
                                                             }
-                                                            if (addressSnapshot.hasError || addressSnapshot.data == null) {
-                                                              return const SizedBox.shrink(); // Return empty space if there's an error or no address
+                                                            if (addressSnapshot
+                                                                    .hasError ||
+                                                                addressSnapshot
+                                                                        .data ==
+                                                                    null) {
+                                                              return const SizedBox
+                                                                  .shrink(); // Return empty space if there's an error or no address
                                                             }
                                                             return Text(
-                                                              addressSnapshot.data!,
-                                                              style: const TextStyle(fontSize: 20),
+                                                              addressSnapshot
+                                                                  .data!,
+                                                              style:
+                                                                  const TextStyle(
+                                                                      fontSize:
+                                                                          20),
                                                             );
                                                           },
                                                         ),
-                                                        const SizedBox(height: 8.0),
+                                                        const SizedBox(
+                                                            height: 8.0),
                                                         const Text(
                                                           'Coordinate',
                                                           style: TextStyle(
-                                                            fontWeight: FontWeight.bold,
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                             fontSize: 15,
                                                           ),
                                                         ),
                                                         GestureDetector(
                                                           onTap: () async {
-                                                            String googleMapsUrl = "https://www.google.com/maps?q=@$location,17z";
-                                                            Uri link = Uri.parse(googleMapsUrl);
-                                                            if (await canLaunchUrl(link)) {
-                                                              await launchUrl(link);
+                                                            String
+                                                                googleMapsUrl =
+                                                                "https://www.google.com/maps?q=@$location,17z";
+                                                            Uri link = Uri.parse(
+                                                                googleMapsUrl);
+                                                            if (await canLaunchUrl(
+                                                                link)) {
+                                                              await launchUrl(
+                                                                  link);
                                                             } else {
                                                               throw 'Could not launch $googleMapsUrl';
                                                             }
                                                           },
                                                           child: Container(
-                                                            decoration: BoxDecoration(
-                                                              color: Colors.green,
-                                                              borderRadius: BorderRadius.circular(10.0),
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color:
+                                                                  Colors.green,
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          10.0),
                                                             ),
-                                                            padding: const EdgeInsets.all(4),
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(4),
                                                             child: Row(
                                                               children: [
                                                                 Text(
                                                                   location,
-                                                                  style: const TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                                                                  style: const TextStyle(
+                                                                      fontSize:
+                                                                          20,
+                                                                      color: Colors
+                                                                          .white,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold),
                                                                 ),
-                                                                const Icon(Icons.location_on, color: Colors.white,), // Add your desired icon here
+                                                                const Icon(
+                                                                  Icons
+                                                                      .location_on,
+                                                                  color: Colors
+                                                                      .white,
+                                                                ),
+                                                                // Add your desired icon here
                                                               ],
                                                             ),
                                                           ),
                                                         ),
-                                                        const SizedBox(height: 8.0),
+                                                        const SizedBox(
+                                                            height: 8.0),
                                                         const Text(
                                                           'Date & Time',
                                                           style: TextStyle(
-                                                            fontWeight: FontWeight.bold,
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                             fontSize: 15,
                                                           ),
                                                         ),
                                                         Text(
                                                           formattedDateTime,
-                                                          style: const TextStyle(fontSize: 20),
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize: 20),
                                                         ),
-                                                        const SizedBox(height: 8.0),
+                                                        const SizedBox(
+                                                            height: 8.0),
                                                         const Text(
                                                           'Evidence',
                                                           style: TextStyle(
-                                                            fontWeight: FontWeight.bold,
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                             fontSize: 15,
                                                           ),
                                                         ),
                                                         GestureDetector(
                                                           onTap: () async {
-                                                            if (mediaFileName.endsWith('mp4')) {
+                                                            if (mediaFileName
+                                                                .endsWith(
+                                                                    'mp4')) {
                                                               // Import the video_player package
-                                                              Uri uri = Uri.parse(imageUrl);
+                                                              Uri uri =
+                                                                  Uri.parse(
+                                                                      imageUrl);
                                                               // Create a VideoPlayerController instance
-                                                              final videoPlayerController = VideoPlayerController.networkUrl(uri);
-                                                    
+                                                              final videoPlayerController =
+                                                                  VideoPlayerController
+                                                                      .networkUrl(
+                                                                          uri);
+
                                                               // Initialize the controller and display a loading indicator while it loads
-                                                              await videoPlayerController.initialize().then((_) {
+                                                              await videoPlayerController
+                                                                  .initialize()
+                                                                  .then((_) {
                                                                 // Once initialized, show the video in a dialog
-                                                                _showVideoDialog(context, videoPlayerController);
+                                                                _showVideoDialog(
+                                                                    context,
+                                                                    videoPlayerController);
                                                               });
-                                                            } else if (mediaFileName.endsWith('jpg')) {
-                                                              _showImageDialog(context, imageUrl);
+                                                            } else if (mediaFileName
+                                                                .endsWith(
+                                                                    'jpg')) {
+                                                              _showImageDialog(
+                                                                  context,
+                                                                  imageUrl);
                                                             } else {
                                                               // Handle other file types (optional)
-                                                              print('Unsupported file type: $mediaFileName');
+                                                              print(
+                                                                  'Unsupported file type: $mediaFileName');
                                                             }
                                                           },
                                                           child: imageWidget,
                                                         ),
-                                                        const SizedBox(height: 8.0),
+                                                        const SizedBox(
+                                                            height: 8.0),
                                                         const Text(
                                                           'SHA256 Hash:',
                                                           style: TextStyle(
-                                                            fontWeight: FontWeight.bold,
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                             fontSize: 15,
                                                           ),
                                                         ),
                                                         Text(
                                                           hashkey,
-                                                          style: const TextStyle(fontSize: 20),
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize: 20),
                                                         )
                                                       ],
                                                     ),
@@ -684,7 +861,9 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                             );
                                           },
                                         ),
-                                        const SizedBox(height: 10,),
+                                        const SizedBox(
+                                          height: 10,
+                                        ),
                                       ],
                                     );
                                   },
@@ -698,7 +877,8 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                         GestureDetector(
                           onTap: () async {
                             if (mediaFileName.endsWith('mp4')) {
-                              final scaffoldMessenger = ScaffoldMessenger.of(context);
+                              final scaffoldMessenger =
+                                  ScaffoldMessenger.of(context);
                               scaffoldMessenger.showSnackBar(
                                 const SnackBar(
                                   content: Text('Video Loading'),
@@ -707,12 +887,16 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                               // Import the video_player package
                               Uri uri = Uri.parse(imageUrl);
                               // Create a VideoPlayerController instance
-                              final videoPlayerController = VideoPlayerController.networkUrl(uri);
+                              final videoPlayerController =
+                                  VideoPlayerController.networkUrl(uri);
 
                               // Initialize the controller and display a loading indicator while it loads
-                              await videoPlayerController.initialize().then((_) {
+                              await videoPlayerController
+                                  .initialize()
+                                  .then((_) {
                                 // Once initialized, show the video in a dialog
-                                _showVideoDialog(context, videoPlayerController);
+                                _showVideoDialog(
+                                    context, videoPlayerController);
                               });
                             } else if (mediaFileName.endsWith('jpg')) {
                               _showImageDialog(context, imageUrl);
@@ -727,26 +911,52 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             StreamBuilder<DocumentSnapshot>(
-                              stream: FirebaseFirestore.instance.collection('reports').doc(documentId).snapshots(),
+                              stream: FirebaseFirestore.instance
+                                  .collection('reports')
+                                  .doc(documentId)
+                                  .snapshots(),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return const Text('⟳', style: TextStyle(fontSize: 15,),);
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Text(
+                                    '⟳',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                    ),
+                                  );
                                 }
                                 if (!snapshot.hasData) {
-                                  return const Text('0', style: TextStyle(fontSize: 15,),);
+                                  return const Text(
+                                    '0',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                    ),
+                                  );
                                 }
-                                final likesCount = snapshot.data!['likesCount'] ?? 0;
-                                return Text('$likesCount', style: const TextStyle(fontSize: 15,),);
+                                final likesCount =
+                                    snapshot.data!['likesCount'] ?? 0;
+                                return Text(
+                                  '$likesCount',
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                  ),
+                                );
                               },
                             ),
                             StreamBuilder<DocumentSnapshot>(
-                              stream: FirebaseFirestore.instance.collection('userFlags').doc(user!.uid).snapshots(),
+                              stream: FirebaseFirestore.instance
+                                  .collection('userFlags')
+                                  .doc(user!.uid)
+                                  .snapshots(),
                               builder: (context, snapshot) {
-                                if (!snapshot.hasData || !snapshot.data!.exists) {
+                                if (!snapshot.hasData ||
+                                    !snapshot.data!.exists) {
                                   return IconButton(
-                                    icon: const Icon(Icons.thumb_up_alt_outlined),
+                                    icon:
+                                        const Icon(Icons.thumb_up_alt_outlined),
                                     onPressed: () async {
-                                      await _firestoreFetcher.toggleLikeReport(documentId, user.uid);
+                                      await _firestoreFetcher.toggleLikeReport(
+                                          documentId, user.uid);
                                     },
                                   );
                                 }
@@ -755,58 +965,94 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                 return IconButton(
                                   icon: Icon(Icons.thumb_up_alt_outlined),
                                   onPressed: () async {
-                                    await _firestoreFetcher.toggleLikeReport(documentId, user.uid);
+                                    await _firestoreFetcher.toggleLikeReport(
+                                        documentId, user.uid);
                                   },
                                 );
                               },
                             ),
                             StreamBuilder<DocumentSnapshot>(
-                              stream: FirebaseFirestore.instance.collection('reports').doc(documentId).snapshots(),
+                              stream: FirebaseFirestore.instance
+                                  .collection('reports')
+                                  .doc(documentId)
+                                  .snapshots(),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return const Text('⟳', style: TextStyle(fontSize: 15,),);
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Text(
+                                    '⟳',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                    ),
+                                  );
                                 }
                                 if (!snapshot.hasData) {
-                                  return const Text('0', style: TextStyle(fontSize: 15,),);
+                                  return const Text(
+                                    '0',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                    ),
+                                  );
                                 }
-                                final flagsCount = snapshot.data!['flagsCount'] ?? 0;
+                                final flagsCount =
+                                    snapshot.data!['flagsCount'] ?? 0;
                                 if (flagsCount >= 5) {
-                                  _firestoreFetcher.deleteReport(documentId, mediaFileName);
+                                  _firestoreFetcher.deleteReport(
+                                      documentId, mediaFileName);
                                 }
-                                return Text('$flagsCount', style: const TextStyle(fontSize: 15,),);
+                                return Text(
+                                  '$flagsCount',
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                  ),
+                                );
                               },
                             ),
                             StreamBuilder<DocumentSnapshot>(
-                              stream: FirebaseFirestore.instance.collection('userFlags').doc(user.uid).snapshots(),
+                              stream: FirebaseFirestore.instance
+                                  .collection('userFlags')
+                                  .doc(user.uid)
+                                  .snapshots(),
                               builder: (context, snapshot) {
-                                if (!snapshot.hasData || !snapshot.data!.exists) {
+                                if (!snapshot.hasData ||
+                                    !snapshot.data!.exists) {
                                   return IconButton(
                                     icon: const Icon(Icons.flag_outlined),
                                     onPressed: () async {
-                                      await _firestoreFetcher.toggleFlagReport(documentId, user.uid, context);
+                                      await _firestoreFetcher.toggleFlagReport(
+                                          documentId, user.uid, context);
                                     },
                                   );
                                 }
-                                final userFlags = snapshot.data!['flagReports'] ?? [];
-                                final hasFlagged = userFlags.contains(documentId);
+                                final userFlags =
+                                    snapshot.data!['flagReports'] ?? [];
+                                final hasFlagged =
+                                    userFlags.contains(documentId);
                                 return IconButton(
-                                  icon: Icon(hasFlagged ? Icons.flag : Icons.flag_outlined, color: Colors.red,),
+                                  icon: Icon(
+                                    hasFlagged
+                                        ? Icons.flag
+                                        : Icons.flag_outlined,
+                                    color: Colors.red,
+                                  ),
                                   onPressed: () async {
-                                    await _firestoreFetcher.toggleFlagReport(documentId, user.uid, context);
+                                    await _firestoreFetcher.toggleFlagReport(
+                                        documentId, user.uid, context);
                                   },
                                 );
                               },
                             ),
                             IconButton(
                                 onPressed: () {
-                                  String link = "https://www.waspada.com/casePreview/$documentId";
+                                  String link =
+                                      "https://www.waspada.com/casePreview/$documentId";
                                   Share.share(link);
                                 },
-                                icon: Icon(Icons.share)
-                            ),
+                                icon: Icon(Icons.share)),
                             GestureDetector(
                               onTap: () async {
-                                String googleMapsUrl = "https://www.google.com/maps?q=@$location,17z";
+                                String googleMapsUrl =
+                                    "https://www.google.com/maps?q=@$location,17z";
                                 Uri link = Uri.parse(googleMapsUrl);
                                 if (await canLaunchUrl(link)) {
                                   await launchUrl(link);
@@ -824,9 +1070,16 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                   children: [
                                     Text(
                                       'Navigate',
-                                      style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
                                     ),
-                                    Icon(Icons.location_on, color: Colors.white,), // Add your desired icon here
+                                    Icon(
+                                      Icons.location_on,
+                                      color: Colors.white,
+                                    ),
+                                    // Add your desired icon here
                                   ],
                                 ),
                               ),
@@ -846,9 +1099,9 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
   }
 }
 
-void _showVideoDialog(BuildContext context, VideoPlayerController videoPlayerController) async {
+void _showVideoDialog(
+    BuildContext context, VideoPlayerController videoPlayerController) async {
   try {
-
     // Initialize video player
     await videoPlayerController.initialize();
     videoPlayerController.setLooping(true);
@@ -877,12 +1130,16 @@ void _showVideoDialog(BuildContext context, VideoPlayerController videoPlayerCon
                   child: Row(
                     children: [
                       Icon(
-                        videoPlayerController.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                        videoPlayerController.value.isPlaying
+                            ? Icons.pause
+                            : Icons.play_arrow,
                         color: Colors.white,
                         size: 36.0,
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close,),
+                        icon: const Icon(
+                          Icons.close,
+                        ),
                         color: Colors.white,
                         onPressed: () {
                           Navigator.of(context).pop();
@@ -906,7 +1163,3 @@ void _showVideoDialog(BuildContext context, VideoPlayerController videoPlayerCon
     print('Error initializing video: $error');
   }
 }
-
-
-
-

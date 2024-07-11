@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fypppp/firestore/fetchdata.dart';
 
 const Color theme = Colors.red;
+const Color sectheme = Colors.white;
 
 class ProfileEditPage extends StatefulWidget {
   @override
@@ -99,11 +100,12 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: theme,
         title: const Text(
           'Edit Profile',
-          style: TextStyle(color: theme, fontWeight: FontWeight.bold),
+          style: TextStyle(color: sectheme, fontWeight: FontWeight.bold),
         ),
-        iconTheme: const IconThemeData(color: theme),
+        iconTheme: const IconThemeData(color: sectheme),
       ),
       backgroundColor: Color(0xFFF4F3F2),
       body: Center(
@@ -167,7 +169,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                     const SizedBox(height: 20),
                     ElevatedButton(
                       style: ButtonStyle(
-                        backgroundColor: WidgetStateProperty.all(const Color(0xFF6798F8)),
+                        backgroundColor: WidgetStateProperty.all(theme),
                         shape: WidgetStateProperty.all(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),

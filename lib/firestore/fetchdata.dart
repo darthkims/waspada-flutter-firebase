@@ -7,8 +7,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:native_exif/native_exif.dart';
+import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -706,6 +709,143 @@ class FirestoreFetcher {
     } catch (e) {
       print("Error getting address: $e");
       return null;
+    }
+  }
+
+  Future<void> checkIn(String circleName, userId, BuildContext context) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Sending Check In to Circle $circleName!'),
+      ),
+    );
+    String location = await getLocation();
+    String senderId = userId;
+    Tuple2<double, double> coordinates = await getCoordinate();
+    final GeoPoint coordinate = GeoPoint(coordinates.item1, coordinates.item2);
+
+
+    // Add the message to Firestore
+    FirebaseFirestore.instance.collection('circles').doc(circleName).collection('messages').add({
+      'senderId': senderId,
+      'message': "CHECK IN REPORT: $location",
+      'location' : coordinate,
+      'timestamp': Timestamp.now(),
+    });
+
+    FirebaseFirestore.instance.collection('circles').doc(circleName).collection('checkin').add({
+      'senderId': senderId,
+      'location' : coordinate,
+      'timestamp': Timestamp.now(),
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Check In has been sent to Circle $circleName!'),
+      ),
+    );
+    await sendFCMNotification(senderId, circleName, location);
+  }
+
+  Future<String> getLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      return 'Latitude: ${position.latitude}, Longitude: ${position.longitude}';
+    } catch (e) {
+      return 'Failed to get location: $e';
+    }
+  }
+
+  Future<Tuple2<double, double>> getCoordinate() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      return Tuple2(position.latitude, position.longitude);
+    } catch (e) {
+      // Handle error
+      throw Exception('Failed to get location: $e');
+    }
+  }
+
+  void quickCapture(String circleName, String currentUserID, BuildContext context) async {
+    File? mediaFile;
+    String fileName = '${DateTime.now()}_${circleName}_${currentUserID}.jpg';
+    print("fileName: $fileName");
+    final XFile? image =
+    await ImagePicker().pickImage(source: ImageSource.camera);
+    mediaFile = File(image!.path);
+    // Do something with the captured image
+    if (mediaFile != null) {
+      String location = await getLocation();
+      String userId = FirebaseAuth.instance.currentUser!.uid;
+      String senderId = userId;
+      Tuple2<double, double> coordinates = await getCoordinate();
+      final GeoPoint coordinate =
+      GeoPoint(coordinates.item1, coordinates.item2);
+
+      final exifData = await Exif.fromPath(mediaFile.path);
+      await exifData.writeAttribute("DateTimeOriginal",
+          DateFormat("yyyy:MM:dd HH:mm:ss").format(DateTime.now()));
+      await exifData.writeAttribute(
+          "UserComment", "Reported in $circleName uploaded using Waspada.");
+      await exifData.writeAttributes({
+        'GPSLatitude': coordinates.item1,
+        'GPSLatitudeRef': 'N',
+        'GPSLongitude': coordinates.item2,
+        'GPSLongitudeRef': 'E',
+      });
+      final uploadedDate = await exifData.getOriginalDate();
+      final locationcoordinate = await exifData.getLatLong();
+      final userComment = await exifData.getAttribute("UserComment");
+      print("Uploaded Date for $fileName: $uploadedDate");
+      print("Coordinates for $fileName: $locationcoordinate");
+      print("User Comment for $fileName: $userComment");
+      await exifData.close();
+
+      String hashKey =
+      await generateFileSha256(mediaFile.path);
+
+      final storage = FirebaseStorage.instance;
+      final mediaRef =
+      storage.ref().child('circleevidence/$circleName/$fileName');
+      print("mediaRef: $mediaRef");
+
+      try {
+        await mediaRef.putFile(mediaFile);
+        print("Media file uploaded successfully");
+      } catch (e) {
+        // Handle errors
+        print('Error uploading media file: $e');
+      }
+
+      final mediaUrl = await mediaRef.getDownloadURL();
+
+      String compressedUrl = await downloadAndUploadCompressedImage(mediaUrl, circleName, fileName);
+
+      // Add the message to Firestore
+      FirebaseFirestore.instance
+          .collection('circles')
+          .doc(circleName)
+          .collection('messages')
+          .add({
+        'fileName': fileName,
+        'senderId': senderId,
+        'message': "Quick Capture: ($location) (SHA256: $hashKey)",
+        'location': coordinate,
+        'timestamp': Timestamp.now(),
+        'hashkey': hashKey,
+        'mediaUrl': mediaUrl,
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sending Quick Capture to Circle $circleName!'),
+        ),
+      );
+      await sendFCMImageNotification(senderId, circleName, location, compressedUrl);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Quick Capture sent to Circle $circleName!'),
+        ),
+      );
     }
   }
 

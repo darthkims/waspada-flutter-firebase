@@ -1,8 +1,6 @@
-import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fypppp/addcircle.dart';
 import 'package:fypppp/casesaround.dart';
@@ -12,11 +10,6 @@ import 'package:fypppp/navbar.dart';
 import 'package:fypppp/profile.dart';
 import 'package:fypppp/firestore/fetchdata.dart';
 import 'package:fypppp/sos.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
-import 'package:native_exif/native_exif.dart';
-import 'package:tuple/tuple.dart';
 
 class Circles extends StatefulWidget {
   const Circles({super.key});
@@ -28,140 +21,7 @@ class Circles extends StatefulWidget {
 class _CirclesState extends State<Circles> {
   int currentPageIndex = 2;
   bool isDeleting = false; // Flag to toggle delete button visibility
-  final FirestoreFetcher _firestoreFetcher = FirestoreFetcher();
-
-  Future<String> _getLocation() async {
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      return 'Latitude: ${position.latitude}, Longitude: ${position.longitude}';
-    } catch (e) {
-      return 'Failed to get location: $e';
-    }
-  }
-
-  Future<Tuple2<double, double>> _getCoordinate() async {
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      return Tuple2(position.latitude, position.longitude);
-    } catch (e) {
-      // Handle error
-      throw Exception('Failed to get location: $e');
-    }
-  }
-
-  void quickCapture(String circleName, String currentUserID) async {
-    File? mediaFile;
-    String fileName = '${DateTime.now()}_${circleName}_${currentUserID}.jpg';
-    print("fileName: $fileName");
-    final XFile? image =
-        await ImagePicker().pickImage(source: ImageSource.camera);
-    mediaFile = File(image!.path);
-    // Do something with the captured image
-    if (mediaFile != null) {
-      String location = await _getLocation();
-      String userId = FirebaseAuth.instance.currentUser!.uid;
-      String senderId = userId;
-      Tuple2<double, double> coordinates = await _getCoordinate();
-      final GeoPoint coordinate =
-          GeoPoint(coordinates.item1, coordinates.item2);
-
-      final exifData = await Exif.fromPath(mediaFile.path);
-      await exifData.writeAttribute("DateTimeOriginal",
-          DateFormat("yyyy:MM:dd HH:mm:ss").format(DateTime.now()));
-      await exifData.writeAttribute(
-          "UserComment", "Reported in $circleName uploaded using Waspada.");
-      await exifData.writeAttributes({
-        'GPSLatitude': coordinates.item1,
-        'GPSLatitudeRef': 'N',
-        'GPSLongitude': coordinates.item2,
-        'GPSLongitudeRef': 'E',
-      });
-      final uploadedDate = await exifData.getOriginalDate();
-      final locationcoordinate = await exifData.getLatLong();
-      final userComment = await exifData.getAttribute("UserComment");
-      print("Uploaded Date for $fileName: $uploadedDate");
-      print("Coordinates for $fileName: $locationcoordinate");
-      print("User Comment for $fileName: $userComment");
-      await exifData.close();
-
-      String hashKey =
-          await _firestoreFetcher.generateFileSha256(mediaFile.path);
-
-      final storage = FirebaseStorage.instance;
-      final mediaRef =
-          storage.ref().child('circleevidence/$circleName/$fileName');
-      print("mediaRef: $mediaRef");
-
-      try {
-        await mediaRef.putFile(mediaFile);
-        print("Media file uploaded successfully");
-      } catch (e) {
-        // Handle errors
-        print('Error uploading media file: $e');
-      }
-
-      final mediaUrl = await mediaRef.getDownloadURL();
-
-      String compressedUrl = await _firestoreFetcher
-          .downloadAndUploadCompressedImage(mediaUrl, circleName, fileName);
-
-      // Add the message to Firestore
-      FirebaseFirestore.instance
-          .collection('circles')
-          .doc(circleName)
-          .collection('messages')
-          .add({
-        'fileName': fileName,
-        'senderId': senderId,
-        'message': "Quick Capture: ($location) (SHA256: $hashKey)",
-        'location': coordinate,
-        'timestamp': Timestamp.now(),
-        'hashkey': hashKey,
-        'mediaUrl': mediaUrl,
-      });
-      await _firestoreFetcher.sendFCMImageNotification(senderId, circleName, location, compressedUrl);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Quick Capture sent to Circle $circleName!'),
-        ),
-      );
-    }
-  }
-
-  Future<void> checkIn(String circleName, userId) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Sending Check In to Circle $circleName!'),
-      ),
-    );
-    String location = await _getLocation();
-    String senderId = userId;
-    Tuple2<double, double> coordinates = await _getCoordinate();
-    final GeoPoint coordinate = GeoPoint(coordinates.item1, coordinates.item2);
-
-
-    // Add the message to Firestore
-    FirebaseFirestore.instance.collection('circles').doc(circleName).collection('messages').add({
-      'senderId': senderId,
-      'message': "CHECK IN REPORT: $location",
-      'location' : coordinate,
-      'timestamp': Timestamp.now(),
-    });
-
-    FirebaseFirestore.instance.collection('circles').doc(circleName).collection('checkin').add({
-      'senderId': senderId,
-      'location' : coordinate,
-      'timestamp': Timestamp.now(),
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Check In has been sent to Circle $circleName!'),
-      ),
-    );
-    await _firestoreFetcher.sendFCMNotification(senderId, circleName, location);
-  }
+  final FirestoreFetcher firestoreFetcher = FirestoreFetcher();
 
   void onItemTapped(int index) {
     setState(() {
@@ -228,13 +88,15 @@ class _CirclesState extends State<Circles> {
   Widget build(BuildContext context) {
 
     const Color theme = Colors.red;
+    const Color sectheme = Colors.white;
 
     return Scaffold(
-        backgroundColor: Color(0xFFF4F3F2),
+        backgroundColor: const Color(0xFFF4F3F2),
         appBar: AppBar(
+          backgroundColor: theme,
           title: const Text(
             'Circles',
-            style: TextStyle(color: theme, fontWeight: FontWeight.bold),
+            style: TextStyle(color: sectheme, fontWeight: FontWeight.bold),
           ),
           automaticallyImplyLeading: false,
           actions: [
@@ -249,10 +111,10 @@ class _CirclesState extends State<Circles> {
                     },
                     icon: const Icon(
                       Icons.add_circle_outline,
-                      color: Colors.black87,
+                      color: sectheme,
                     )
                 ),
-                SizedBox(width: 10,)
+                const SizedBox(width: 10,)
               ],
             )
           ],
@@ -261,7 +123,7 @@ class _CirclesState extends State<Circles> {
           child: Column(
             children: [
               Container(
-                margin: EdgeInsets.all(10),
+                margin: const EdgeInsets.all(10),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -308,8 +170,8 @@ class _CirclesState extends State<Circles> {
                           }
                           return GridView.builder(
                             shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
                               mainAxisSpacing: 10.0,
                               crossAxisSpacing: 10.0,
@@ -355,7 +217,7 @@ class _CirclesState extends State<Circles> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Container(
-                                            padding: EdgeInsets.all(8),
+                                            padding: const EdgeInsets.all(8),
                                             child: Column(
                                               children: [
                                                 Row(
@@ -363,7 +225,7 @@ class _CirclesState extends State<Circles> {
                                                   children: [
                                                     Text(
                                                       circleName,
-                                                      style: TextStyle(
+                                                      style: const TextStyle(
                                                         fontSize: 25,
                                                         fontWeight: FontWeight.bold,
                                                       ),
@@ -378,7 +240,7 @@ class _CirclesState extends State<Circles> {
                                                                 return Column(
                                                                   mainAxisSize: MainAxisSize.min,
                                                                   children: [
-                                                                    SizedBox(height: 10,),
+                                                                    const SizedBox(height: 10,),
                                                                     ListTile(
                                                                       leading: const Icon(
                                                                         Icons.delete,
@@ -386,7 +248,7 @@ class _CirclesState extends State<Circles> {
                                                                       ),
                                                                       title: Text(
                                                                         currentUserID == adminID ? 'Delete Circle' : 'Leave Circle',
-                                                                        style: TextStyle(fontSize: 17), // Adjust the font size
+                                                                        style: const TextStyle(fontSize: 17), // Adjust the font size
                                                                       ),
                                                                       onTap: () {
                                                                         showDialog(
@@ -411,9 +273,9 @@ class _CirclesState extends State<Circles> {
                                                                               TextButton(
                                                                                 onPressed: () {
                                                                                   if (currentUserID == adminID) {
-                                                                                    _firestoreFetcher.deleteCircle(circleName); // Delete circle
+                                                                                    firestoreFetcher.deleteCircle(circleName); // Delete circle
                                                                                   } else {
-                                                                                    _firestoreFetcher.leaveCircle(circleName, currentUserID); // Implement your leave circle function
+                                                                                    firestoreFetcher.leaveCircle(circleName, currentUserID); // Implement your leave circle function
                                                                                   }
                                                                                   Navigator.of(context).pop();
                                                                                   Navigator.of(context).pop();
@@ -431,26 +293,26 @@ class _CirclesState extends State<Circles> {
                                                               }
                                                           );
                                                         },
-                                                        icon: Icon(Icons.more_horiz_outlined)
+                                                        icon: const Icon(Icons.more_horiz_outlined)
                                                     )
                                                   ],
                                                 ),
                                                 Row(
                                                   children: [
                                                     Container(
-                                                      child: Padding(
-                                                        padding: const EdgeInsets.all(4.0),
-                                                        child: Text(
-                                                          type != null ? type : "Null",
-                                                          style: TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic, color: Colors.white),
-                                                        ),
-                                                      ),
                                                       decoration: BoxDecoration(
                                                         color: theme,
                                                         borderRadius: BorderRadius.circular(10),
                                                       ),
+                                                      child: Padding(
+                                                        padding: const EdgeInsets.all(4.0),
+                                                        child: Text(
+                                                          type != null ? type : "Null",
+                                                          style: const TextStyle(fontWeight: FontWeight.bold, fontStyle: FontStyle.italic, color: Colors.white),
+                                                        ),
+                                                      ),
                                                     ),
-                                                    Spacer(),
+                                                    const Spacer(),
                                                   ],
                                                 ),
                                               ],
@@ -458,35 +320,35 @@ class _CirclesState extends State<Circles> {
                                           ),
                                           Expanded(
                                             child: Container(
-                                              padding: EdgeInsets.all(8),
+                                              padding: const EdgeInsets.all(8),
                                               child: Row(
                                                 crossAxisAlignment: CrossAxisAlignment.end,
                                                 mainAxisAlignment:
                                                     MainAxisAlignment.spaceEvenly,
                                                 children: [
                                                   Container(
-                                                    child: IconButton(
-                                                      icon:
-                                                          Icon(Icons.my_location_outlined, color: Colors.white,),
-                                                      onPressed: () {
-                                                        checkIn(circleName, currentUserID);
-                                                      },
-                                                    ),
-                                                    decoration: BoxDecoration(
+                                                    decoration: const BoxDecoration(
                                                       color: Colors.blue,
                                                       shape: BoxShape.circle,
                                                     ),
-                                                  ),
-                                                  Container(
                                                     child: IconButton(
-                                                      icon: Icon(Icons.camera_alt, color: Colors.white,),
+                                                      icon:
+                                                          const Icon(Icons.my_location_outlined, color: Colors.white,),
                                                       onPressed: () {
-                                                        quickCapture(circleName, currentUserID);
+                                                        firestoreFetcher.checkIn(circleName, currentUserID, context);
                                                       },
                                                     ),
+                                                  ),
+                                                  Container(
                                                     decoration: BoxDecoration(
                                                       color: Colors.red[300],
                                                       shape: BoxShape.circle,
+                                                    ),
+                                                    child: IconButton(
+                                                      icon: const Icon(Icons.camera_alt, color: Colors.white,),
+                                                      onPressed: () {
+                                                        firestoreFetcher.quickCapture(circleName, currentUserID, context);
+                                                      },
                                                     ),
                                                   ),
                                                 ],

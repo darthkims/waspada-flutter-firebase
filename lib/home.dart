@@ -560,7 +560,7 @@ class _HomeState extends State<Home> {
                   direction: SpeedDialDirection.down,
                   animatedIcon: AnimatedIcons.menu_close,
                   animatedIconTheme: const IconThemeData(color: Colors.white),
-                  backgroundColor: Colors.red[300],
+                  backgroundColor: Colors.red,
                   overlayColor: Colors.black,
                   overlayOpacity: 0.5,
                   spaceBetweenChildren: 5,

@@ -114,13 +114,18 @@ class _AddReportState extends State<AddReport> {
       'Other'
     ];
 
+    const Color theme = Colors.red;
+    const Color sectheme = Colors.white;
+
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF4F3F2),
       appBar: AppBar(
+        backgroundColor: theme,
         title: const Text("Add Report",
-          style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+          style: TextStyle(color: sectheme, fontWeight: FontWeight.bold),
       ),
-      iconTheme: const IconThemeData(color: Colors.blue), // Set the leading icon color to white
+      iconTheme: const IconThemeData(color: sectheme), // Set the leading icon color to white
     ),
       body: SingleChildScrollView(
         child: Container(
@@ -128,9 +133,6 @@ class _AddReportState extends State<AddReport> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Center(
-                child: Text("Add Report", style: TextStyle(fontSize: 30)),
-              ),
               const SizedBox(height: 20),
               ButtonTheme(
                 alignedDropdown: true,
@@ -150,6 +152,8 @@ class _AddReportState extends State<AddReport> {
                     print('Selected case type: $value');
                   },
                   decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.0),
                     ),
@@ -162,6 +166,8 @@ class _AddReportState extends State<AddReport> {
                 controller: descriptionController,
                 decoration: InputDecoration(
                   labelText: 'Description',
+                  fillColor: Colors.white,
+                  filled: true,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),
@@ -177,6 +183,8 @@ class _AddReportState extends State<AddReport> {
                       readOnly: true, // Set readOnly to true
                       initialValue: snapshot.data,
                       decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
                         labelText: 'Location',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
@@ -202,7 +210,7 @@ class _AddReportState extends State<AddReport> {
                   );
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               const Text(
                 "Media:",
                 style: TextStyle(),
@@ -211,7 +219,7 @@ class _AddReportState extends State<AddReport> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
                   border: Border.all(color: Colors.black),
-                  color: Colors.grey[200],
+                  color: Colors.white,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -251,6 +259,82 @@ class _AddReportState extends State<AddReport> {
                       ),
                     ),
                     IconButton(
+                        onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min, // Ensure the Column only occupies the space it needs
+                                  children: <Widget>[
+                                    const SizedBox(height: 10,),
+                                    ListTile(
+                                      leading: const Icon(
+                                        Icons.photo,
+                                        size: 33, // Adjust the size of the icon
+                                      ),
+                                      title: const Text(
+                                        'Upload Image',
+                                        style: TextStyle(fontSize: 17),
+                                      ),
+                                      onTap: () {
+                                        Navigator.of(context).pop();
+                                        pickMedia(context, 'photo');
+                                      },
+                                    ),
+                                    const SizedBox(height: 10,),
+                                    ListTile(
+                                      leading: const Icon(
+                                        Icons.video_file_outlined,
+                                        size: 33, // Adjust the size of the icon
+                                      ),
+                                      title: const Text(
+                                        'Upload Video',
+                                        style: TextStyle(fontSize: 17),
+                                      ),
+                                      onTap: () {
+                                        Navigator.of(context).pop();
+                                        pickMedia(context, 'video');
+                                      },
+                                    ),
+                                    const SizedBox(height: 10,),
+                                    ListTile(
+                                      leading: const Icon(
+                                        Icons.camera_alt,
+                                        size: 33, // Adjust the size of the icon
+                                      ),
+                                      title: const Text(
+                                        'Capture Image',
+                                        style: TextStyle(fontSize: 17),
+                                      ),
+                                      onTap: () {
+                                        Navigator.of(context).pop();
+                                        captureMedia('photo');
+                                      },
+                                    ),
+                                    const SizedBox(height: 10,),
+                                    ListTile(
+                                      leading: const Icon(
+                                        Icons.videocam,
+                                        size: 33, // Adjust the size of the icon
+                                      ),
+                                      title: const Text(
+                                        'Capture Video',
+                                        style: TextStyle(fontSize: 17),
+                                      ),
+                                      onTap: () {
+                                        Navigator.of(context).pop();
+                                        captureMedia('video');
+                                      },
+                                    ),
+                                    const SizedBox(height: 10,),
+                                  ],
+                                );
+                              },
+                            );
+                        },
+                        icon: Icon(Icons.upload)
+                    ),
+                    IconButton(
                       icon: const Icon(Icons.delete),
                       onPressed: () {
                         if (_mediaType != null && _mediaName != null) {
@@ -274,102 +358,10 @@ class _AddReportState extends State<AddReport> {
                         }
                       },
                     )
-
                   ],
                 ),
               ),
-              const SizedBox(
-                height: 30,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return Column(
-                            mainAxisSize: MainAxisSize.min, // Ensure the Column only occupies the space it needs
-                            children: <Widget>[
-                              const SizedBox(height: 10,),
-                              ListTile(
-                                leading: const Icon(
-                                  Icons.photo,
-                                  size: 36, // Adjust the size of the icon
-                                ),
-                                title: const Text(
-                                  'Upload Image',
-                                  style: TextStyle(fontSize: 20), // Adjust the font size
-                                ),
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                  pickMedia(context, 'photo');
-                                },
-                              ),
-                              const SizedBox(height: 10,),
-                              ListTile(
-                                leading: const Icon(
-                                  Icons.video_file_outlined,
-                                  size: 36, // Adjust the size of the icon
-                                ),
-                                title: const Text(
-                                  'Upload Video',
-                                  style: TextStyle(fontSize: 20), // Adjust the font size
-                                ),
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                  pickMedia(context, 'video');
-                                },
-                              ),
-                              const SizedBox(height: 10,),
-                              ListTile(
-                                leading: const Icon(
-                                  Icons.camera_alt,
-                                  size: 36, // Adjust the size of the icon
-                                ),
-                                title: const Text(
-                                  'Capture Image',
-                                  style: TextStyle(fontSize: 20), // Adjust the font size
-                                ),
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                  captureMedia('photo');
-                                },
-                              ),
-                              const SizedBox(height: 10,),
-                              ListTile(
-                                leading: const Icon(
-                                  Icons.videocam,
-                                  size: 36, // Adjust the size of the icon
-                                ),
-                                title: const Text(
-                                  'Capture Video',
-                                  style: const TextStyle(fontSize: 20), // Adjust the font size
-                                ),
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                  captureMedia('video');
-                                },
-                              ),
-                              const SizedBox(height: 10,),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    icon: const Icon(Icons.upload),
-                    label: const Text('Upload Evidence'),
-                    style: ButtonStyle(shape: WidgetStateProperty.all(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 50,),
+              const SizedBox(height: 10,),
               Container(
                 width: 200, // Adjust the width as needed
                 child: ElevatedButton(
@@ -377,7 +369,6 @@ class _AddReportState extends State<AddReport> {
                     // Check if the case type is selected
                     if (_selectedCaseType != null) {
                       try {
-                        // Retrieve the location asynchronously
                         String description = descriptionController.text;
                         String? location = await _locationFuture;
                         List<String> coordinates = location!.split(', ');
@@ -430,7 +421,7 @@ class _AddReportState extends State<AddReport> {
                     }
                   },
                   style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(Colors.blue),
+                    backgroundColor: WidgetStateProperty.all(theme),
                     shape: WidgetStateProperty.all(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -442,7 +433,6 @@ class _AddReportState extends State<AddReport> {
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
                     ),
                   ),
                 ),

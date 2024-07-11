@@ -14,8 +14,8 @@ import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
 
-Color appbar = Colors.white;
-Color textappbar = Colors.red;
+Color appbar = Colors.red;
+Color textappbar = Colors.white;
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -103,7 +103,6 @@ class _ProfilePageState extends State<ProfilePage> {
           'Profile',
           style: TextStyle(color: textappbar, fontWeight: FontWeight.bold),
         ),
-
         backgroundColor: appbar,
         iconTheme: const IconThemeData(color: Colors.white),
         automaticallyImplyLeading: false,

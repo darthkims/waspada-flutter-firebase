@@ -4,9 +4,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:fypppp/casesaround.dart';
+import 'package:fypppp/casesaround_district.dart';
 import 'package:fypppp/circles.dart';
 import 'package:fypppp/navbar.dart';
-import 'package:fypppp/offlinehome.dart';
 import 'package:fypppp/profile.dart';
 import 'package:fypppp/settings.dart';
 import 'package:fypppp/sos.dart';
@@ -129,7 +129,7 @@ class _HomeState extends State<Home> {
             context,
             PageRouteBuilder(
               pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
-                return const CasesAround();
+                return const CasesAroundDistrict();
               },
               transitionDuration: Duration.zero,
               reverseTransitionDuration: Duration.zero,

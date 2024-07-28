@@ -25,70 +25,8 @@ class CasesAround extends StatefulWidget {
 }
 
 class _CasesAroundState extends State<CasesAround> {
-  int currentPageIndex = 3;
   Set<String> uniqueCities = Set<String>();
   Map<String, int> cityOccurrences = {};
-
-  void onItemTapped(int index) {
-    setState(() {
-      switch (index) {
-        case 0:
-          Navigator.push(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (BuildContext context, Animation<double> animation1,
-                  Animation<double> animation2) {
-                return const Home();
-              },
-              transitionDuration: Duration.zero,
-              reverseTransitionDuration: Duration.zero,
-            ),
-          );
-          break;
-        case 1:
-          Navigator.push(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (BuildContext context, Animation<double> animation1,
-                  Animation<double> animation2) {
-                return const SOSPage();
-              },
-              transitionDuration: Duration.zero,
-              reverseTransitionDuration: Duration.zero,
-            ),
-          );
-          break;
-        case 2:
-          Navigator.push(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (BuildContext context, Animation<double> animation1,
-                  Animation<double> animation2) {
-                return const Circles();
-              },
-              transitionDuration: Duration.zero,
-              reverseTransitionDuration: Duration.zero,
-            ),
-          );
-          break;
-        case 3:
-          break;
-        case 4:
-          Navigator.push(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (BuildContext context, Animation<double> animation1,
-                  Animation<double> animation2) {
-                return const ProfilePage();
-              },
-              transitionDuration: Duration.zero,
-              reverseTransitionDuration: Duration.zero,
-            ),
-          );
-          break;
-      }
-    });
-  }
 
   void _showHelpDialog(BuildContext context) {
     showDialog(
@@ -123,10 +61,10 @@ class _CasesAroundState extends State<CasesAround> {
         appBar: AppBar(
           backgroundColor: theme,
           title: const Text(
-            'Cases Around',
+            'All Disctricts',
             style: TextStyle(color: sectheme, fontWeight: FontWeight.bold),
           ),
-          automaticallyImplyLeading: false,
+          iconTheme: IconThemeData(color: sectheme),
           actions: [
             Row(
               children: [
@@ -139,18 +77,6 @@ class _CasesAroundState extends State<CasesAround> {
                     _showHelpDialog(context);
                   },
                 ),
-                // IconButton(
-                //   icon: const Icon(
-                //     Icons.airline_seat_recline_extra_sharp,
-                //     color: Colors.blue,
-                //   ),
-                //   onPressed: () {
-                //     Navigator.push(
-                //         context,
-                //         MaterialPageRoute(
-                //             builder: (context) => CasesAroundDistrict()));
-                //   },
-                // ),
               ],
             ),
           ],
@@ -318,9 +244,8 @@ class _CasesAroundState extends State<CasesAround> {
               }
             },
           ),
-        ),
-        bottomNavigationBar: CustomNavigationBar(
-            currentPageIndex: currentPageIndex, onItemTapped: onItemTapped));
+        )
+    );
   }
 }
 
@@ -417,11 +342,6 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
             ),
           ],
         ),
-        actions: [
-          Row(
-            children: [],
-          )
-        ],
         iconTheme: IconThemeData(color: sectheme),
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -629,15 +549,11 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                               builder: (BuildContext context) {
                                                 return Container(
                                                   height: 500,
-                                                  padding: const EdgeInsets.all(
-                                                      16.0),
+                                                  padding: const EdgeInsets.all(16.0),
                                                   child: SingleChildScrollView(
                                                     child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
                                                       children: [
                                                         ListTile(
                                                           title: Center(
@@ -646,9 +562,7 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                                               style:
                                                                   const TextStyle(
                                                                 fontSize: 30,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
+                                                                fontWeight: FontWeight.bold,
                                                               ),
                                                             ),
                                                           ),
@@ -656,163 +570,109 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                                         const Text(
                                                           'Description: ',
                                                           style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
+                                                            fontWeight: FontWeight.bold,
                                                             fontSize: 15,
                                                           ),
                                                         ),
                                                         Text(
                                                           desc!,
-                                                          style:
-                                                              const TextStyle(
-                                                                  fontSize: 20),
+                                                          style: const TextStyle(fontSize: 20),
                                                         ),
-                                                        const SizedBox(
-                                                            height: 8.0),
+                                                        const SizedBox(height: 8.0),
                                                         const Text(
                                                           'Location',
                                                           style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
+                                                            fontWeight: FontWeight.bold,
                                                             fontSize: 15,
                                                           ),
                                                         ),
                                                         FutureBuilder(
-                                                          future:
-                                                              getAddressFromCoordinates(
-                                                                  latitude,
-                                                                  longitude),
-                                                          builder: (context,
-                                                              AsyncSnapshot<
-                                                                      String?>
-                                                                  addressSnapshot) {
-                                                            if (addressSnapshot
-                                                                    .connectionState ==
-                                                                ConnectionState
-                                                                    .waiting) {
-                                                              return const SizedBox
-                                                                  .shrink(); // Return empty space while waiting for address
+                                                          future: getAddressFromCoordinates(latitude, longitude),
+                                                          builder: (context, AsyncSnapshot<String?>addressSnapshot) {
+                                                            if (addressSnapshot.connectionState == ConnectionState.waiting) {
+                                                              return const SizedBox.shrink(); // Return empty space while waiting for address
                                                             }
-                                                            if (addressSnapshot
-                                                                    .hasError ||
-                                                                addressSnapshot
-                                                                        .data ==
-                                                                    null) {
-                                                              return const SizedBox
-                                                                  .shrink(); // Return empty space if there's an error or no address
+                                                            if (addressSnapshot.hasError ||
+                                                                addressSnapshot.data == null) {
+                                                              return const SizedBox.shrink(); // Return empty space if there's an error or no address
                                                             }
                                                             return Text(
-                                                              addressSnapshot
-                                                                  .data!,
-                                                              style:
-                                                                  const TextStyle(
-                                                                      fontSize:
-                                                                          20),
+                                                              addressSnapshot.data!,
+                                                              style: const TextStyle(
+                                                                      fontSize: 20),
                                                             );
                                                           },
                                                         ),
-                                                        const SizedBox(
-                                                            height: 8.0),
+                                                        const SizedBox(height: 8.0),
                                                         const Text(
                                                           'Coordinate',
                                                           style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
+                                                            fontWeight: FontWeight.bold,
                                                             fontSize: 15,
                                                           ),
                                                         ),
                                                         GestureDetector(
                                                           onTap: () async {
-                                                            String
-                                                                googleMapsUrl =
-                                                                "https://www.google.com/maps?q=@$location,17z";
-                                                            Uri link = Uri.parse(
-                                                                googleMapsUrl);
-                                                            if (await canLaunchUrl(
-                                                                link)) {
-                                                              await launchUrl(
-                                                                  link);
+                                                            String googleMapsUrl = "https://www.google.com/maps?q=@$location,17z";
+                                                            Uri link = Uri.parse(googleMapsUrl);
+                                                            if (await canLaunchUrl(link)) {
+                                                              await launchUrl(link);
                                                             } else {
                                                               throw 'Could not launch $googleMapsUrl';
                                                             }
                                                           },
                                                           child: Container(
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              color:
-                                                                  Colors.green,
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          10.0),
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.green,
+                                                              borderRadius: BorderRadius.circular(10.0),
                                                             ),
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(4),
+                                                            padding: const EdgeInsets.all(4),
                                                             child: Row(
                                                               children: [
                                                                 Text(
                                                                   location,
                                                                   style: const TextStyle(
-                                                                      fontSize:
-                                                                          20,
-                                                                      color: Colors
-                                                                          .white,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold),
+                                                                      fontSize: 20,
+                                                                      color: Colors.white,
+                                                                      fontWeight: FontWeight.bold),
                                                                 ),
                                                                 const Icon(
-                                                                  Icons
-                                                                      .location_on,
-                                                                  color: Colors
-                                                                      .white,
+                                                                  Icons.location_on,
+                                                                  color: Colors.white,
                                                                 ),
                                                                 // Add your desired icon here
                                                               ],
                                                             ),
                                                           ),
                                                         ),
-                                                        const SizedBox(
-                                                            height: 8.0),
+                                                        const SizedBox(height: 8.0),
                                                         const Text(
                                                           'Date & Time',
                                                           style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
+                                                            fontWeight: FontWeight.bold,
                                                             fontSize: 15,
                                                           ),
                                                         ),
                                                         Text(
                                                           formattedDateTime,
                                                           style:
-                                                              const TextStyle(
-                                                                  fontSize: 20),
+                                                              const TextStyle(fontSize: 20),
                                                         ),
-                                                        const SizedBox(
-                                                            height: 8.0),
+                                                        const SizedBox(height: 8.0),
                                                         const Text(
                                                           'Evidence',
                                                           style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
+                                                            fontWeight: FontWeight.bold,
                                                             fontSize: 15,
                                                           ),
                                                         ),
                                                         GestureDetector(
                                                           onTap: () async {
-                                                            if (mediaFileName
-                                                                .endsWith(
-                                                                    'mp4')) {
+                                                            if (mediaFileName.endsWith('mp4')) {
                                                               // Import the video_player package
-                                                              Uri uri =
-                                                                  Uri.parse(
-                                                                      imageUrl);
+                                                              Uri uri = Uri.parse(imageUrl);
                                                               // Create a VideoPlayerController instance
-                                                              final videoPlayerController =
-                                                                  VideoPlayerController
-                                                                      .networkUrl(
-                                                                          uri);
+                                                              final videoPlayerController = VideoPlayerController.networkUrl(uri);
 
                                                               // Initialize the controller and display a loading indicator while it loads
                                                               await videoPlayerController

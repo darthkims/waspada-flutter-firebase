@@ -2,7 +2,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fypppp/casesaround.dart';
+import 'package:fypppp/casesaround_district.dart';
 import 'package:fypppp/circles.dart';
 import 'package:fypppp/firestore/fetchdata.dart';
 import 'package:fypppp/home.dart';
@@ -72,7 +72,7 @@ class _ProfilePageState extends State<ProfilePage> {
             context,
             PageRouteBuilder(
               pageBuilder: (BuildContext context, Animation<double> animation1, Animation<double> animation2) {
-                return const CasesAround();
+                return const CasesAroundDistrict();
               },
               transitionDuration: Duration.zero,
               reverseTransitionDuration: Duration.zero,

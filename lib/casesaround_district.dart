@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fypppp/casesaround.dart';
+import 'package:fypppp/casesaround_specific_city.dart';
 import 'package:fypppp/circles.dart';
 import 'package:fypppp/home.dart';
 import 'package:fypppp/navbar.dart';
@@ -22,6 +24,7 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
   int melakaTengahCount = 0;
   int jasinCount = 0;
   int alorGajahCount = 0;
+  int overallCount = 0;
   Color cityTitle = Colors.redAccent;
   Color totalCases = Colors.black;
   Color containerCity = Colors.white;
@@ -94,10 +97,7 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
         return AlertDialog(
           title: const Text("Help"),
           content: const Text(
-            "Only cities with cases are listed.\n"
-                "Green: 1-2 cases\n"
-                "Yellow: 3-4 cases\n"
-                "Red: 5 or more cases",
+            "Only cities with cases are listed.",
             style: TextStyle(fontSize: 15),
           ),
           actions: <Widget>[
@@ -216,6 +216,8 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
       print('City: $city, Cases: $count');
     });
     print('Total Alor Gajah cases: $alorGajahCount');
+
+    overallCount=melakaTengahCount+alorGajahCount+jasinCount;
   }
 
   BarChart buildBarChart(Map<String, int> cityCounts, String title) {
@@ -325,18 +327,6 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
                   _showHelpDialog(context);
                 },
               ),
-              IconButton(
-                icon: const Icon(
-                  Icons.airline_seat_recline_extra_sharp,
-                  color: Colors.white,
-                ),
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => CasesAroundDistrict()));
-                },
-              ),
             ],
           ),
         ],
@@ -352,6 +342,14 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
                 return SingleChildScrollView(
                   child: Column(
                     children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                          child: Container(
+                            margin: EdgeInsets.only(top: 10, left: 10),
+                              child: Text("Reported Cases for past 30 days:", style: TextStyle(fontWeight: FontWeight.bold),
+                              )
+                          )
+                      ),
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         // Enable horizontal scrolling
@@ -432,8 +430,80 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
                           ],
                         ),
                       ),
+                      Divider(),
+                      Container(
+                          child: Text("View cases by district", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          )
+                      ),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => CasesAround(),
+                              )
+                          );
+                        },
+                        child: Container(
+                          height: 100,
+                          margin: EdgeInsets.all(10),
+                          padding: EdgeInsets.all(10),
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: containerCity,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(1),
+                                spreadRadius: 1,
+                                blurRadius: 3,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                // bottom: 45,
+                                right: 0,
+                                child: Image.asset(
+                                  "assets/images/melakaflag.png",
+                                  width: 120,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'All Districts',
+                                    style: TextStyle(
+                                        fontSize: 25,
+                                        color: cityTitle,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    'Total Cases: $overallCount',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        color: totalCases,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => CasesAroundSpecific(cities: melakaTengahCities, cityName: "Melaka Tengah",),
+                              )
+                          );
+                        },
                         child: Container(
                           height: 100,
                           margin: EdgeInsets.all(10),
@@ -488,7 +558,13 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => CasesAroundSpecific(cities: jasinCities, cityName: "Jasin",),
+                              )
+                          );
+                        },
                         child: Container(
                           height: 100,
                           margin: EdgeInsets.all(10),
@@ -543,7 +619,13 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => CasesAroundSpecific(cities: alorGajahCities, cityName: "Alor Gajah",),
+                              )
+                          );
+                        },
                         child: Container(
                           height: 100,
                           margin: EdgeInsets.all(10),

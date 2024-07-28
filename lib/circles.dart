@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fypppp/addcircle.dart';
-import 'package:fypppp/casesaround.dart';
+import 'package:fypppp/casesaround_district.dart';
 import 'package:fypppp/circlesdetails.dart';
 import 'package:fypppp/home.dart';
 import 'package:fypppp/navbar.dart';
@@ -60,7 +60,7 @@ class _CirclesState extends State<Circles> {
             PageRouteBuilder(
               pageBuilder: (BuildContext context, Animation<double> animation1,
                   Animation<double> animation2) {
-                return const CasesAround();
+                return const CasesAroundDistrict();
               },
               transitionDuration: Duration.zero,
               reverseTransitionDuration: Duration.zero,

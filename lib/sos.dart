@@ -338,7 +338,7 @@ class _SOSPageState extends State<SOSPage> {
                                         Center(
                                           child: ElevatedButton(
                                             style: ButtonStyle(
-                                              backgroundColor: WidgetStateProperty.all(Colors.blue),
+                                              backgroundColor: WidgetStateProperty.all(Color(0xFFF0E715)),
                                             ),
                                             onPressed: () async {
                                               await _stopAndSaveVideo();
@@ -347,7 +347,7 @@ class _SOSPageState extends State<SOSPage> {
                                             },
                                             child: const Text(
                                               'Upload',
-                                              style: TextStyle(color: Colors.white),
+                                              style: TextStyle(color: Colors.black),
                                             ),
                                           ),
                                         ),
@@ -635,7 +635,7 @@ class _SOSAudioPageState extends State<SOSAudioPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.red,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Center(
@@ -726,7 +726,7 @@ class _SOSAudioPageState extends State<SOSAudioPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Colors.blue),
+                  backgroundColor: WidgetStateProperty.all(Color(0xFFF0E715)),
                   shape: WidgetStateProperty.all(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),

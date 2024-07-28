@@ -328,7 +328,7 @@ class _CirclesState extends State<Circles> {
                                                 children: [
                                                   Container(
                                                     decoration: const BoxDecoration(
-                                                      color: Colors.blue,
+                                                      color: Color(0xFFF0E715),
                                                       shape: BoxShape.circle,
                                                     ),
                                                     child: IconButton(

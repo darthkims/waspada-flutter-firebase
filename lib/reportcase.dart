@@ -106,6 +106,8 @@ class _ReportCaseState extends State<ReportCase> {
             String? caseType = (document.data() as Map<String, dynamic>)['caseType'] as String?;
             String? hashkey = (document.data() as Map<String, dynamic>)['hashkey'];
             String description = (document.data() as Map<String, dynamic>)['description'] as String? ?? "No description available";
+            if (description == "")
+              description = "No description available";
             Timestamp? timestamp = (document.data() as Map<String, dynamic>)['timeStamp'] as Timestamp?;
             String formattedDateTime = DateFormat('dd MMMM yyyy, hh:mm a').format(timestamp!.toDate());
             String? location = (document.data() as Map<String, dynamic>)['location'] as String?;
@@ -384,37 +386,6 @@ class _ReportCaseState extends State<ReportCase> {
                                                   ),
                                                   const SizedBox(height: 8.0),
                                                   const Text(
-                                                    'Evidence',
-                                                    style: TextStyle(
-                                                      fontWeight: FontWeight.bold,
-                                                      fontSize: 15,
-                                                    ),
-                                                  ),
-                                                  GestureDetector(
-                                                    onTap: () async {
-                                                      if (mediaFileName!.endsWith('mp4')) {
-                                                        // Import the video_player package
-                                                        Uri uri = Uri.parse(imageUrl!);
-                                                        // Create a VideoPlayerController instance
-                                                        final videoPlayerController = VideoPlayerController.networkUrl(uri);
-                                              
-                                                        // Initialize the controller and display a loading indicator while it loads
-                                                        await videoPlayerController.initialize().then((_) {
-                                                          // Once initialized, show the video in a dialog
-                                                          _showVideoDialog(context, videoPlayerController);
-                                                        });
-                                                      } else if (mediaFileName.endsWith('jpg')) {
-                                                        _showImageDialog(context, imageUrl!);
-                                                      } else {
-                                                        // Handle other file types (optional)
-                                                        print('Unsupported file type: $mediaFileName');
-                                                      }
-                                                    },
-                                              
-                                                    child: imageWidget,
-                                                  ),
-                                                  const SizedBox(height: 8.0),
-                                                  const Text(
                                                     'SHA256 Hash: ',
                                                     style: TextStyle(
                                                       fontWeight: FontWeight.bold,
@@ -488,10 +459,8 @@ class _ReportCaseState extends State<ReportCase> {
                                 },
                               );
                             }
-                            final userLikes = snapshot.data!['likeReports'] ?? [];
-                            final hasLiked = userLikes.contains(documentId);
                             return IconButton(
-                              icon: Icon(hasLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined),
+                              icon: Icon(Icons.thumb_up_alt_outlined),
                               onPressed: () async {
                                 await _firestoreFetcher.toggleLikeReport(documentId, user.uid);
                               },
@@ -522,10 +491,8 @@ class _ReportCaseState extends State<ReportCase> {
                                 },
                               );
                             }
-                            final userFlags = snapshot.data!['flagReports'] ?? [];
-                            final hasFlagged = userFlags.contains(documentId);
                             return IconButton(
-                              icon: Icon(hasFlagged ? Icons.flag: Icons.flag_outlined),
+                              icon: Icon(Icons.flag_outlined),
                               onPressed: () async {
                                 await _firestoreFetcher.toggleFlagReport(documentId, user.uid, context);
                               },

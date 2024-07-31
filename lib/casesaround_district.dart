@@ -25,6 +25,10 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
   int jasinCount = 0;
   int alorGajahCount = 0;
   int overallCount = 0;
+  int melakaTengahCountCity = 0;
+  int jasinCountCity = 0;
+  int alorGajahCountCity = 0;
+  int overallCountCity = 0;
   Color cityTitle = Colors.redAccent;
   Color totalCases = Colors.black;
   Color containerCity = Colors.white;
@@ -153,7 +157,7 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
 
     // Get today's date and date 3 days ago
     DateTime now = DateTime.now();
-    DateTime threeDaysAgo = now.subtract(const Duration(days: 300));
+    DateTime threeDaysAgo = now.subtract(const Duration(days: 30));
 
     Map<String, int> tempMelakaTengahCityCounts = {};
     Map<String, int> tempJasinCityCounts = {};
@@ -199,6 +203,7 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
     print('Melaka Tengah City-wise Case Counts in Last 3 Days:');
     melakaTengahCityCounts.forEach((city, count) {
       melakaTengahCount+=count;
+      melakaTengahCountCity++;
       print('City: $city, Cases: $count');
     });
     print('Total Melaka Tengah cases: $melakaTengahCount');
@@ -206,6 +211,7 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
     print('Jasin City-wise Case Counts in Last 3 Days:');
     jasinCityCounts.forEach((city, count) {
       jasinCount+=count;
+      jasinCountCity++;
       print('City: $city, Cases: $count');
     });
     print('Total Jasin cases: $jasinCount');
@@ -213,10 +219,12 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
     print('Alor Gajah City-wise Case Counts in Last 3 Days:');
     alorGajahCityCounts.forEach((city, count) {
       alorGajahCount+=count;
+      alorGajahCountCity++;
       print('City: $city, Cases: $count');
     });
     print('Total Alor Gajah cases: $alorGajahCount');
 
+    overallCountCity=melakaTengahCountCity+alorGajahCountCity+jasinCountCity;
     overallCount=melakaTengahCount+alorGajahCount+jasinCount;
   }
 
@@ -444,7 +452,6 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
                           );
                         },
                         child: Container(
-                          height: 100,
                           margin: EdgeInsets.all(10),
                           padding: EdgeInsets.all(10),
                           width: double.infinity,
@@ -490,6 +497,13 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
                                         color: totalCases,
                                         fontWeight: FontWeight.bold),
                                   ),
+                                  Text(
+                                    'Total Cities: $overallCountCity',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        color: totalCases,
+                                        fontWeight: FontWeight.normal),
+                                  ),
                                 ],
                               ),
                             ],
@@ -505,7 +519,6 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
                           );
                         },
                         child: Container(
-                          height: 100,
                           margin: EdgeInsets.all(10),
                           padding: EdgeInsets.all(10),
                           width: double.infinity,
@@ -551,6 +564,13 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
                                         color: totalCases,
                                         fontWeight: FontWeight.bold),
                                   ),
+                                  Text(
+                                    'Total Cities: $melakaTengahCountCity',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        color: totalCases,
+                                        fontWeight: FontWeight.normal),
+                                  ),
                                 ],
                               ),
                             ],
@@ -566,7 +586,6 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
                           );
                         },
                         child: Container(
-                          height: 100,
                           margin: EdgeInsets.all(10),
                           padding: EdgeInsets.all(10),
                           width: double.infinity,
@@ -612,6 +631,13 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
                                         color: totalCases,
                                         fontWeight: FontWeight.bold),
                                   ),
+                                  Text(
+                                    'Total Cities: $jasinCountCity',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        color: totalCases,
+                                        fontWeight: FontWeight.normal),
+                                  ),
                                 ],
                               ),
                             ],
@@ -627,7 +653,6 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
                           );
                         },
                         child: Container(
-                          height: 100,
                           margin: EdgeInsets.all(10),
                           padding: EdgeInsets.all(10),
                           width: double.infinity,
@@ -671,6 +696,13 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
                                         fontSize: 20,
                                         color: totalCases,
                                         fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    'Total Cities: $alorGajahCountCity',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        color: totalCases,
+                                        fontWeight: FontWeight.normal),
                                   ),
                                 ],
                               ),

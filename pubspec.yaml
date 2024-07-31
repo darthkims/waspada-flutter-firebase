@@ -101,84 +101,14 @@ flutter_launcher_icons:
   min_sdk_android: 21
 
 flutter_native_splash:
-  # This package generates native code to customize Flutter's default white native splash screen
-  # with background color and splash image.
-  # Customize the parameters below, and run the following command in the terminal:
-  # dart run flutter_native_splash:create
-  # To restore Flutter's default white splash screen, run the following command in the terminal:
-  # dart run flutter_native_splash:remove
-
-  # IMPORTANT NOTE: These parameter do not affect the configuration of Android 12 and later, which
-  # handle splash screens differently that prior versions of Android.  Android 12 and later must be
-  # configured specifically in the android_12 section below.
-
-  # From Android 12 onwards, the splash screen is handled differently than in previous versions.
-  # Please visit https://developer.android.com/guide/topics/ui/splash-screen
-  # Following are specific parameters for Android 12+.
   android_12:
-  # The image parameter sets the splash screen icon image.  If this parameter is not specified,
-  # the app's launcher icon will be used instead.
-  # Please note that the splash screen will be clipped to a circle on the center of the screen.
-  # App icon with an icon background: This should be 960×960 pixels, and fit within a circle
-  # 640 pixels in diameter.
-  # App icon without an icon background: This should be 1152×1152 pixels, and fit within a circle
-  # 768 pixels in diameter.
-  image: assets/images/appicon.png
-
-  # Splash screen background color.
-  color: "#B7FDFD"
-
-  # App icon background color.
-  #icon_background_color: "#111111"
-
-  # The branding property allows you to specify an image used as branding in the splash screen.
-  branding: assets/images/logo.png
-
-  # The image_dark, color_dark, icon_background_color_dark, and branding_dark set values that
-  # apply when the device is in dark mode. If they are not specified, the app will use the
-  # parameters from above.
-  image_dark: assets/images/appicon.png
-  color_dark: "#0E3535"
-  #icon_background_color_dark: "#eeeeee"
-
-  # The android, ios and web parameters can be used to disable generating a splash screen on a given
-  # platform.
-  #android: false
-  #ios: false
-  #web: false
-
-  # Platform specific images can be specified with the following parameters, which will override
-  # the respective parameter.  You may specify all, selected, or none of these parameters:
-  #color_android: "#42a5f5"
-  #color_dark_android: "#042a49"
-  #image_android: assets/splash-android.png
-  #image_dark_android: assets/splash-invert-android.png
-  #background_image_android: "assets/background-android.png"
-  #background_image_dark_android: "assets/dark-background-android.png"
-  #branding_android: assets/brand-android.png
-  #branding_dark_android: assets/dart_dark-android.png
-
-  # The position of the splash image can be set with android_gravity, ios_content_mode, and
-  # web_image_mode parameters.  All default to center.
-  #
-  # android_gravity can be one of the following Android Gravity (see
-  # https://developer.android.com/reference/android/view/Gravity): bottom, center,
-  # center_horizontal, center_vertical, clip_horizontal, clip_vertical, end, fill, fill_horizontal,
-  # fill_vertical, left, right, start, or top.
-  #android_gravity: center
-  #
-  # The screen orientation can be set in Android with the android_screen_orientation parameter.
-  # Valid parameters can be found here:
-  # https://developer.android.com/guide/topics/manifest/activity-element#screen
-  #android_screen_orientation: sensorLandscape
-
-  # To hide the notification bar, use the fullscreen parameter.  Has no effect in web since web
-  # has no notification bar.  Defaults to false.
-  # NOTE: Unlike Android, iOS will not automatically show the notification bar when the app loads.
-  #       To show the notification bar, add the following code to your Flutter app:
-  #       WidgetsFlutterBinding.ensureInitialized();
-  #       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top], );
-  #fullscreen: true
+    background_image: "assets/images/wallpaper_native.png"
+    background_image_dark: "assets/images/wallpaper_native.png"
+  image: "assets/images/appicon_red_rounded.png"
+  branding: "assets/images/waspada_word_logo.png"
+  image_dark: "assets/images/appicon_red_rounded.png"
+  background_image: "assets/images/wallpaper_native.png"
+  background_image_dark: "assets/images/wallpaper_native.png"
 
 # The following section is specific to Flutter packages.
 flutter:

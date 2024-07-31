@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fypppp/home.dart';
 import 'package:fypppp/login.dart';
 import 'package:fypppp/firestore/authentication.dart'; // Import your authentication helper class
 
@@ -8,32 +7,32 @@ class SignUpForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final FocusNode _fullNameFocus = FocusNode();
-    final FocusNode _emailFocus = FocusNode();
-    final FocusNode _passwordFocus = FocusNode();
-    final FocusNode _confirmPasswordFocus = FocusNode();
-    final FocusNode _usernameFocus = FocusNode();
+    final FocusNode fullNameFocus = FocusNode();
+    final FocusNode emailFocus = FocusNode();
+    final FocusNode passwordFocus = FocusNode();
+    final FocusNode confirmPasswordFocus = FocusNode();
+    final FocusNode usernameFocus = FocusNode();
 
-    void _usernameSubmitted(String value) {
-      FocusScope.of(context).requestFocus(_emailFocus);
+    void usernameSubmitted(String value) {
+      FocusScope.of(context).requestFocus(emailFocus);
     }
 
-    void _emailSubmitted(String value) {
-      FocusScope.of(context).requestFocus(_passwordFocus);
+    void emailSubmitted(String value) {
+      FocusScope.of(context).requestFocus(passwordFocus);
     }
 
-    void _passwordSubmitted(String value) {
-      FocusScope.of(context).requestFocus(_confirmPasswordFocus);
+    void passwordSubmitted(String value) {
+      FocusScope.of(context).requestFocus(confirmPasswordFocus);
     }
 
     // Create an instance of AuthenticationHelper
-    final AuthenticationHelper _authHelper = AuthenticationHelper();
+    final AuthenticationHelper authHelper = AuthenticationHelper();
 
-    final TextEditingController _fullNameController = TextEditingController();
-    final TextEditingController _userNameController = TextEditingController();
-    final TextEditingController _emailController = TextEditingController();
-    final TextEditingController _passwordController = TextEditingController();
-    final TextEditingController _confirmPasswordController = TextEditingController();
+    final TextEditingController fullNameController = TextEditingController();
+    final TextEditingController userNameController = TextEditingController();
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+    final TextEditingController confirmPasswordController = TextEditingController();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F3F2),
@@ -47,13 +46,13 @@ class SignUpForm extends StatelessWidget {
               children: [
                 Image.asset(
                   'assets/images/waspada_word_logo.png',),
-                SizedBox(height: 30,),
+                const SizedBox(height: 30,),
                 TextFormField(
-                  controller: _fullNameController,
-                  focusNode: _fullNameFocus,
+                  controller: fullNameController,
+                  focusNode: fullNameFocus,
                   textInputAction: TextInputAction.next,
                   onFieldSubmitted: (_) {
-                    FocusScope.of(context).requestFocus(_usernameFocus);
+                    FocusScope.of(context).requestFocus(usernameFocus);
                   },
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.person, color: Colors.black),
@@ -62,7 +61,7 @@ class SignUpForm extends StatelessWidget {
                     fillColor: Color(0xFFFFFFFF),
                     filled: true,
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: const BorderRadius.all(Radius.circular(30)),
+                      borderRadius: BorderRadius.all(Radius.circular(30)),
                       borderSide: BorderSide(color: Colors.transparent),
                     ),
                     focusedBorder: OutlineInputBorder(
@@ -73,10 +72,10 @@ class SignUpForm extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
-                  controller: _userNameController,
-                  focusNode: _usernameFocus,
+                  controller: userNameController,
+                  focusNode: usernameFocus,
                   textInputAction: TextInputAction.next,
-                  onFieldSubmitted: _usernameSubmitted,
+                  onFieldSubmitted: usernameSubmitted,
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.person, color: Colors.black),
                     labelText: 'Username',
@@ -95,10 +94,10 @@ class SignUpForm extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
-                  controller: _emailController,
-                  focusNode: _emailFocus,
+                  controller: emailController,
+                  focusNode: emailFocus,
                   textInputAction: TextInputAction.next,
-                  onFieldSubmitted: _emailSubmitted,
+                  onFieldSubmitted: emailSubmitted,
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.email, color: Colors.black),
                     labelText: 'Email',
@@ -117,11 +116,11 @@ class SignUpForm extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
-                  controller: _passwordController,
-                  focusNode: _passwordFocus,
+                  controller: passwordController,
+                  focusNode: passwordFocus,
                   obscureText: true,
                   textInputAction: TextInputAction.next,
-                  onFieldSubmitted: _passwordSubmitted,
+                  onFieldSubmitted: passwordSubmitted,
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.lock, color: Colors.black),
                     labelText: 'Password',
@@ -140,8 +139,8 @@ class SignUpForm extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
-                  controller: _confirmPasswordController,
-                  focusNode: _confirmPasswordFocus,
+                  controller: confirmPasswordController,
+                  focusNode: confirmPasswordFocus,
                   obscureText: true,
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.lock, color: Colors.black),
@@ -162,8 +161,8 @@ class SignUpForm extends StatelessWidget {
                 const SizedBox(height: 30),
                 ElevatedButton(
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(const Color(0xffF88379)),
-                    shape: MaterialStateProperty.all(
+                    backgroundColor: WidgetStateProperty.all(Colors.red),
+                    shape: WidgetStateProperty.all(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -171,7 +170,7 @@ class SignUpForm extends StatelessWidget {
                   ),
                   onPressed: () async {
                     // Check if full name is empty
-                    if (_fullNameController.text.isEmpty) {
+                    if (fullNameController.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Please enter your full name")),
                       );
@@ -179,7 +178,7 @@ class SignUpForm extends StatelessWidget {
                     }
 
                     // Check if email is empty or not valid
-                    if (_emailController.text.isEmpty ){
+                    if (emailController.text.isEmpty ){
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Please enter a valid email")),
                       );
@@ -187,7 +186,7 @@ class SignUpForm extends StatelessWidget {
                     }
 
                     // Check if password is empty
-                    if (_passwordController.text.isEmpty) {
+                    if (passwordController.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Please enter a password")),
                       );
@@ -195,19 +194,39 @@ class SignUpForm extends StatelessWidget {
                     }
 
                     // Check if confirm password matches password
-                    if (_passwordController.text != _confirmPasswordController.text) {
+                    if (passwordController.text != confirmPasswordController.text) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Passwords do not match")),
                       );
                       return; // Stop further execution
                     }
 
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (BuildContext context) {
+                        return const Dialog(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(width: 16),
+                                Text("Signing Up..."),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+
                     // Call the signUp method when the button is pressed
-                    String? signUpResult = await _authHelper.signUp(
-                      email: _emailController.text,
-                      password: _passwordController.text,
-                      fullName: _fullNameController.text,
-                      userName: _userNameController.text,
+                    String? signUpResult = await authHelper.signUp(
+                      email: emailController.text,
+                      password: passwordController.text,
+                      fullName: fullNameController.text,
+                      userName: userNameController.text,
                     );
 
                     if (signUpResult == null) {
@@ -216,6 +235,7 @@ class SignUpForm extends StatelessWidget {
                           MaterialPageRoute(builder: (context) => const LoginForm())
                       );
                     } else {
+                      Navigator.pop(context);
                       // Display sign-up error to the user
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(signUpResult)),
@@ -232,16 +252,15 @@ class SignUpForm extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 30),
                 const Divider(),
                 const SizedBox(height: 30),
-                Text("Already signed up? Login now!", style: TextStyle(color: Color(0xff671107)),),
+                const Text("Already signed up? Login now!", style: TextStyle(color: Color(0xff671107)),),
                 ElevatedButton(
                   style: ButtonStyle(
                     backgroundColor:
-                    MaterialStateProperty.all(const Color(0xffF88379)),
-                    shape: MaterialStateProperty.all(
+                    WidgetStateProperty.all(Colors.red),
+                    shape: WidgetStateProperty.all(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),

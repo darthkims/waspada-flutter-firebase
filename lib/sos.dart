@@ -28,7 +28,6 @@ class _SOSPageState extends State<SOSPage> {
   late Timer _timer;
   int _elapsedSeconds = 0;
   String _currentLocation = '';
-  bool _isOnline = false;
   final Connectivity connectivityResult = Connectivity();
   String userId = FirebaseAuth.instance.currentUser!.uid;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -39,18 +38,45 @@ class _SOSPageState extends State<SOSPage> {
   @override
   void initState() {
     super.initState();
+    // _getCurrentLocation();
     _initializeControllerFuture = _initializeCamera();
-    _getCurrentLocation();
-    _checkConnectivity();
   }
 
-  Future<void> _checkConnectivity() async {
-    var connectivityResult = await (Connectivity().checkConnectivity());
-    setState(() {
-      _isOnline = connectivityResult != ConnectivityResult.none;
-    });
-  }
+  Future<void> _getCurrentLocation() async {
+    String offlineCoordinate = ''; // Define offlineCoordinate variable outside try block
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
 
+      double latitude = position.latitude;
+      double longitude = position.longitude;
+      coordinate = GeoPoint(latitude, longitude);
+      location = "$latitude, $longitude";
+      offlineCoordinate = '$latitude, $longitude'; // Update offlineCoordinate inside try block
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks.first;
+        String address = '${place.name}, ${place.thoroughfare}, ${place.subLocality}, ${place.locality}';
+        print("${place.name}, ${place.street}, ${place.locality}, ${place.subLocality}, ${place.street}, ${place.locality}");
+        setState(() {
+          _currentLocation = address;
+        });
+      } else {
+        setState(() {
+          _currentLocation = 'Address not found';
+        });
+      }
+    } catch (e) {
+      print('Error: $e');
+      setState(() {
+        _currentLocation = '$offlineCoordinate'; // Use offlineCoordinate here
+      });
+    }
+  }
 
   Future<void> _initializeCamera() async {
     final cameras = await availableCameras();
@@ -63,9 +89,11 @@ class _SOSPageState extends State<SOSPage> {
     await _controller.initialize();
 
     // Start recording
-    _startTimer();
     await _controller.startVideoRecording();
+    await _getCurrentLocation();
+    print("Current Location: $_currentLocation");
     await firestoreFetcher.sendSOSFCMNotification(userId, _currentLocation);
+    _startTimer();
     print('Start Recording');
 
     return;
@@ -186,43 +214,6 @@ class _SOSPageState extends State<SOSPage> {
     return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 
-  Future<void> _getCurrentLocation() async {
-    String offlineCoordinate = ''; // Define offlineCoordinate variable outside try block
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      double latitude = position.latitude;
-      double longitude = position.longitude;
-      coordinate = GeoPoint(latitude, longitude);
-      location = "$latitude, $longitude";
-      offlineCoordinate = '$latitude, $longitude'; // Update offlineCoordinate inside try block
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks.first;
-        String address = '${place.name}, ${place.thoroughfare}, ${place.subLocality}, ${place.locality}';
-        print("${place.name}, ${place.street}, ${place.locality}, ${place.subLocality}, ${place.street}, ${place.locality}");
-        setState(() {
-          _currentLocation = address;
-        });
-      } else {
-        setState(() {
-          _currentLocation = 'Address not found';
-        });
-      }
-    } catch (e) {
-      print('Error: $e');
-      setState(() {
-        _currentLocation = '$offlineCoordinate'; // Use offlineCoordinate here
-      });
-    }
-  }
-
-
   void _cancelAndUpload() {
     showDialog(
       context: context,
@@ -338,7 +329,7 @@ class _SOSPageState extends State<SOSPage> {
                                         Center(
                                           child: ElevatedButton(
                                             style: ButtonStyle(
-                                              backgroundColor: WidgetStateProperty.all(Color(0xFFF0E715)),
+                                              backgroundColor: WidgetStateProperty.all(Color(0xFF9ACD32)),
                                             ),
                                             onPressed: () async {
                                               await _stopAndSaveVideo();
@@ -347,7 +338,7 @@ class _SOSPageState extends State<SOSPage> {
                                             },
                                             child: const Text(
                                               'Upload',
-                                              style: TextStyle(color: Colors.black),
+                                              style: TextStyle(color: Colors.white),
                                             ),
                                           ),
                                         ),
@@ -402,10 +393,13 @@ class _SOSPageState extends State<SOSPage> {
                 ],
               );
             } else {
-              return const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    Colors.blue,
+              return Container(
+                color: Colors.black,
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Colors.white,
+                    ),
                   ),
                 ),
               );
@@ -438,10 +432,11 @@ class _SOSAudioPageState extends State<SOSAudioPage> {
   String currentDate = '';
   final FirestoreFetcher firestoreFetcher = FirestoreFetcher();
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  late Future<void> _initializeControllerFuture;
 
   @override
   void initState() {
-    _getCurrentLocation();
+    _initializeControllerFuture = _getCurrentLocation();
     audioRecord = AudioRecorder();
 
     // Start periodic timer to update time every second
@@ -620,8 +615,6 @@ class _SOSAudioPageState extends State<SOSAudioPage> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
 
@@ -638,130 +631,177 @@ class _SOSAudioPageState extends State<SOSAudioPage> {
         backgroundColor: Colors.red,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Center(
-        child: Container(
-          margin: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              if (isRecording)
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.all(10),
-                  child: Text('Duration: ${_formatElapsedTime(_elapsedSeconds)}', style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold),),
-                ),
-              const SizedBox(height: 20,),
-
-              if (isRecording)
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.all(10),
-                  child: const Row(
-
-                    mainAxisSize: MainAxisSize.min,
+      body: FutureBuilder(
+        future: _initializeControllerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+              return Center(
+                child: Container(
+                  margin: const EdgeInsets.all(20),
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.mic, // Choose the icon you want to use
-                        color: Colors.white,
-                        size: 25,
+                    children: <Widget>[
+                      if (isRecording)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.all(10),
+                          child: Text(
+                            'Duration: ${_formatElapsedTime(_elapsedSeconds)}',
+                            style: const TextStyle(
+                                fontSize: 25, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      const SizedBox(
+                        height: 20,
                       ),
-                      SizedBox(width: 5), // Adding some space between icon and text
-                      Text(
-                        'Recording audio',
-                        style: TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+
+                      if (isRecording)
+                        Container(
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.all(10),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.mic, // Choose the icon you want to use
+                                  color: Colors.white,
+                                  size: 25,
+                                ),
+                                SizedBox(width: 5),
+                                // Adding some space between icon and text
+                                Text(
+                                  'Recording audio',
+                                  style: TextStyle(
+                                    fontSize: 25,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            )),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      // Container to display location details
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Date:',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              '$formattedDate - $formattedTime',
+                              style: const TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                            const Text(
+                              'Location:',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              '$_currentLocation',
+                              style: const TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                            const Text(
+                              'Coordinate:',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              '$location',
+                              style: const TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor:
+                              WidgetStateProperty.all(Color(0xFF9ACD32)),
+                          shape: WidgetStateProperty.all(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        onPressed: () {
+                          if (isRecording) {
+                            stopRecording();
+                          } else {
+                            startRecording();
+                          }
+                        },
+                        child: isRecording
+                            ? const Text(
+                                'Stop & Upload Recording',
+                                style: TextStyle(color: Colors.white),
+                              )
+                            : const Text(
+                                'Start Recording',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                      ),
+                      if (uploading) const CircularProgressIndicator(),
+                      // Display circular progress indicator if uploading is true
+
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStateProperty.all(Colors.red),
+                          shape: WidgetStateProperty.all(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.white),
                         ),
                       ),
                     ],
-                  )
-                ),
-              const SizedBox(height: 20,),
-              // Container to display location details
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Date:',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      '$formattedDate - $formattedTime',
-                      style: const TextStyle(fontSize: 16,),
-                    ),
-                    const Text(
-                      'Location:',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      '$_currentLocation',
-                      style: const TextStyle(fontSize: 16,),
-                    ),
-                    const Text(
-                      'Coordinate:',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      '$location',
-                      style: const TextStyle(fontSize: 16,),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Color(0xFFF0E715)),
-                  shape: WidgetStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
                   ),
                 ),
-                onPressed: () {
-                  if (isRecording) {
-                    stopRecording();
-                  } else {
-                    startRecording();
-                  }
-                },
-                child: isRecording ? const Text('Stop & Upload Recording', style: TextStyle(color: Colors.white),) : const Text('Start Recording', style: TextStyle(color: Colors.white),),
-              ),
-              if (uploading) const CircularProgressIndicator(), // Display circular progress indicator if uploading is true
-
-              const SizedBox(height: 20),
-              ElevatedButton(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Colors.red),
-                  shape: WidgetStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+              );
+            } else {
+            return Container(
+              color: Colors.white,
+              child: const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.red,
                   ),
                 ),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('Cancel', style: TextStyle(color: Colors.white),),
               ),
-            ],
-          ),
-        ),
+            );
+          }
+          }
       ),
     );
   }

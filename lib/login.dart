@@ -81,7 +81,7 @@ class LoginForm extends StatelessWidget {
                 const SizedBox(height: 30,),
                 ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(const Color(0xffF88379)),
+                      backgroundColor: WidgetStateProperty.all(Colors.red),
                       shape: WidgetStateProperty.all(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -89,6 +89,43 @@ class LoginForm extends StatelessWidget {
                       ),
                     ),
                     onPressed: () async {
+
+                      // Check if email is empty or not valid
+                      if (emailController.text.isEmpty ){
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Please enter a valid email")),
+                        );
+                        return; // Stop further execution
+                      }
+
+                      // Check if password is empty
+                      if (passwordController.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Please enter a password")),
+                        );
+                        return; // Stop further execution
+                      }
+
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          return Dialog(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CircularProgressIndicator(),
+                                  SizedBox(width: 16),
+                                  Text("Logging In..."),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+
                       String? signInResult = await authHelper.signIn(
                         email: emailController.text,
                         password: passwordController.text,
@@ -102,11 +139,12 @@ class LoginForm extends StatelessWidget {
                           prefs.setString('refreshToken', token);
                           print("ID Token: $token");
                         }
-                        Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const Home())
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (context) => const Home()),
+                              (Route<dynamic> route) => false,
                         );
                       } else {
+                        Navigator.pop(context);
                         // Display sign-up error to the user
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text(signInResult)),
@@ -118,10 +156,10 @@ class LoginForm extends StatelessWidget {
                 const SizedBox(height: 30,),
                 const Divider(),
                 const SizedBox(height: 30,),
-                Text("Are you new here? Join the community!", style: TextStyle(color: Color(0xff671107)),),
+                const Text("Are you new here? Join the community!", style: TextStyle(color: Color(0xff671107)),),
                 ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(const Color(0xffF88379)),
+                      backgroundColor: WidgetStateProperty.all(Colors.red),
                       shape: WidgetStateProperty.all(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),

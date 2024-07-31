@@ -10,12 +10,23 @@ class StartUpScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F3F2),
       body: Container(
-        margin: const EdgeInsets.all(30),
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/wallpaper_native.png"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        padding: const EdgeInsets.all(30),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Image.asset(
+                'assets/images/appicon_red_rounded.png',
+                width: 80,
+              ),
+              const SizedBox(height: 10,),
               Image.asset(
                 'assets/images/waspada_word_logo.png',
                 width: 500,

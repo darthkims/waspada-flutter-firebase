@@ -135,6 +135,7 @@ class _CasesAroundSpecificState extends State<CasesAroundSpecific> {
                           : midCases
                           ? const Color(0xFF04234D)
                           : const Color(0xFF04234D);
+                      String warning = highCases ? "assets/images/red_warning.png" : midCases ? "assets/images/yellow_warning.png" : "assets/images/green_warning.png";
                       return Expanded(
                         child: cityName.isNotEmpty
                             ? GestureDetector(
@@ -157,7 +158,7 @@ class _CasesAroundSpecificState extends State<CasesAroundSpecific> {
                               margin: const EdgeInsets.symmetric(
                                   vertical: 8.0, horizontal: 4.0),
                               decoration: BoxDecoration(
-                                color: color,
+                                color: Colors.white,
                                 borderRadius: BorderRadius.circular(10.0),
                                 boxShadow: [
                                   BoxShadow(
@@ -170,38 +171,47 @@ class _CasesAroundSpecificState extends State<CasesAroundSpecific> {
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceEvenly,
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                                child: Stack(
                                   children: [
-                                    Text(
-                                      cityName,
-                                      style: TextStyle(
-                                          color: highCases
-                                              ? const Color(0xFF04234D)
-                                              : midCases
-                                              ? const Color(0xFF04234D)
-                                              : const Color(0xFF04234D),
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+                                    Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Image.asset(warning, width: 35,)
                                     ),
-                                    Text(
-                                      "Cases: ${cityOccurrences[cityName] ?? 0}",
-                                      // Display the number of occurrences
-                                      style: TextStyle(
-                                          color: highCases
-                                              ? const Color(0xFF04234D)
-                                              : midCases
-                                              ? const Color(0xFF04234D)
-                                              : const Color(0xFF04234D),
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                    Column(
+                                      mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          cityName,
+                                          style: TextStyle(
+                                              color: highCases
+                                                  ? Color(0xFF04234D)
+                                                  : midCases
+                                                  ? const Color(0xFF04234D)
+                                                  : const Color(0xFF04234D),
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Text(
+                                          "Cases: ${cityOccurrences[cityName] ?? 0}",
+                                          // Display the number of occurrences
+                                          style: TextStyle(
+                                              color: highCases
+                                                  ? Color(0xFF04234D)
+                                                  : midCases
+                                                  ? const Color(0xFF04234D)
+                                                  : const Color(0xFF04234D),
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -216,7 +226,7 @@ class _CasesAroundSpecificState extends State<CasesAroundSpecific> {
                           decoration: BoxDecoration(
                             color: highCases
                                 ? Colors.red
-                                : const Color(0xFFFAF4F4),
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(10.0),
                             boxShadow: [
                               BoxShadow(

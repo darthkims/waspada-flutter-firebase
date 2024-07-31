@@ -52,7 +52,6 @@ class _HomeState extends State<Home> {
             mapController.move(_currentLocation, 19.0);
             _shouldCenterMap = false; // Set to false after initial centering
           }
-          print("$_currentLocation");
         });
       }
     });
@@ -86,7 +85,6 @@ class _HomeState extends State<Home> {
         setState(() {
           _currentLocation = LatLng(position.latitude, position.longitude);
           mapController.move(_currentLocation, 19.0);
-          print("$_currentLocation");
         });
       }
     } else {
@@ -202,33 +200,12 @@ class _HomeState extends State<Home> {
     // LatLng point = LatLng(latitude, longitude);
     final prefs = await SharedPreferences.getInstance();
     final int distanceAlert = prefs.getInt('distanceAlert') ?? 1;
-    print('Distance Alert: $distanceAlert');
-    // int _duration = 10000;
-    // double _minHeight = 80;
     double distance = Geolocator.distanceBetween(
       _currentLocation.latitude,
       _currentLocation.longitude,
       latitude,
       longitude,
     )/1000;
-    print('Distance: $distance');
-    // if (distance < distanceAlert) {
-    //   try {
-    //     InAppNotification.show(
-    //       child: NotificationBody(
-    //         caseType: caseType,
-    //         minHeight: _minHeight,
-    //       ),
-    //       context: context,
-    //       onTap: () {
-    //         mapController.move(point, 19.0);
-    //       },
-    //       duration: Duration(milliseconds: _duration),
-    //     );
-    //   } catch (e) {
-    //     print('Error calculate distance:  $e');
-    //   }
-    // };
   }
 
   void _addDynamicMarker(double latitude, double longitude, String date, String caseType, String description, String time, String url, String mediaFileName) {
@@ -415,9 +392,9 @@ class _HomeState extends State<Home> {
           title: const Text('Reported Cases', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
           content: Container(
             decoration: BoxDecoration(
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10.0),
             ),
-            margin: const EdgeInsets.all(0),
             height: 300, // Adjust height as needed
             width: 400,
             child: SingleChildScrollView(
@@ -446,16 +423,16 @@ class _HomeState extends State<Home> {
                     LatLng point = LatLng(latitude, longitude);
                     return Container(
                       decoration: BoxDecoration(
-                        color: Colors.red[200],
+                        color: Colors.red[50],
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       margin: const EdgeInsets.all(5),
                       child: ListTile(
-                        trailing: Icon(Icons.location_on, color: Colors.white,),
+                        trailing: Icon(Icons.location_on, color: Colors.red,),
                         title: Text(
                           caseType,
                           style: TextStyle(
-                            color: Colors.white,
+                            color: Colors.black,
                             fontWeight: distance < distanceAlert ? FontWeight.bold : FontWeight.normal,
                           ),
                         ),
@@ -464,13 +441,13 @@ class _HomeState extends State<Home> {
                           children: [
                             Text(
                               description,
-                              style: TextStyle(color: Colors.white,),
+                              style: TextStyle(color: Colors.black,),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                             Text(
                               '${isKm ? '${shownDistance.toStringAsFixed(2)} KM' : '${shownDistance.toStringAsFixed(2)} meter'}',
-                              style: TextStyle(color: Colors.white,),
+                              style: TextStyle(color: Colors.black,),
                             ),
                           ],
                         ),
@@ -576,17 +553,6 @@ class _HomeState extends State<Home> {
                             MaterialPageRoute(builder: (context) => const SettingsPage())
                         );
                         },
-                    ),
-                    SpeedDialChild(
-                      child: const Icon(Icons.notifications, color: Colors.white,),
-                      backgroundColor: Colors.red[300],
-                      label: 'Notifications',
-                      onTap: () {
-                        // Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(builder: (context) => NotificationPage())
-                        // );
-                      },
                     ),
                     SpeedDialChild(
                       child: const Icon(Icons.flag, color: Colors.white,),

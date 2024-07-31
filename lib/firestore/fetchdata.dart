@@ -22,7 +22,7 @@ class FirestoreFetcher {
   final storage = FirebaseStorage.instance;
 
   // Update user data
-  Future<void> updateUserData(String newName, String newUsername, String newPhone) async {
+  Future<void> updateUserData(String newName, String newUsername) async {
     try {
       // Get current user
       User? currentUser = _auth.currentUser;
@@ -35,7 +35,6 @@ class FirestoreFetcher {
         await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).update({
           'fullName': newName,
           'username' : newUsername,
-          'phoneNumber' : newPhone
         });
       }
     } catch (e) {
@@ -406,7 +405,7 @@ class FirestoreFetcher {
                 "token": memberToken,
                 "notification": {
                   "body": "$currentUsername: Quick Capture - $content",
-                  "title": circleName,
+                  "title": "Quick Capture by $currentUsername ($circleName)",
                   "image": imageUrl // Add image URL here
                 },
                 "data": {
@@ -822,11 +821,7 @@ class FirestoreFetcher {
       String compressedUrl = await downloadAndUploadCompressedImage(mediaUrl, circleName, fileName);
 
       // Add the message to Firestore
-      FirebaseFirestore.instance
-          .collection('circles')
-          .doc(circleName)
-          .collection('messages')
-          .add({
+      FirebaseFirestore.instance.collection('circles').doc(circleName).collection('messages').add({
         'fileName': fileName,
         'senderId': senderId,
         'message': "Quick Capture: ($location) (SHA256: $hashKey)",

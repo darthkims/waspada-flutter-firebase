@@ -175,23 +175,18 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                 : CrossAxisAlignment.start;
 
                         // Check if the message contains "check in"
-                        bool containsCheckIn =
-                            message.toLowerCase().contains("check in report");
+                        bool containsCheckIn = message.toLowerCase().contains("check in report");
                         // Check if the message contains a mediaUrl
-                        bool containsMedia =
-                            mediaUrl != null && mediaUrl.isNotEmpty;
-
+                        bool containsMedia = mediaUrl != null && mediaUrl.isNotEmpty;
                         bool containsJPG = false;
                         if (fileName != null && fileName.isNotEmpty) {
                           containsJPG = fileName.toLowerCase().contains('.jpg');
                         }
-
                         bool containsVideo = false;
                         if (fileName != null && fileName.isNotEmpty) {
                           containsVideo =
                               fileName.toLowerCase().contains('sosrecording');
                         }
-
                         bool containsAudio = false;
                         if (fileName != null && fileName.isNotEmpty) {
                           containsAudio =
@@ -208,19 +203,12 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                             const SizedBox(height: 10),
                             IntrinsicWidth(
                               child: Container(
-                                width: 300,
+                                constraints: BoxConstraints(maxWidth: 300),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
-                                  color: containsCheckIn ||
-                                          containsAudio ||
-                                          containsVideo
-                                      ? Colors
-                                          .grey // If the message contains "check in", make it red
-                                      : isCurrentUserMessage
-                                          ? const Color(
-                                              0xFF66EEEE) // If the message doesn't contain "check in" and it's sent by the current user, make it blue
-                                          : const Color(
-                                              0xFFECFFB9), // If the message doesn't contain "check in" and it's not sent by the current user, make it white
+                                  color: isCurrentUserMessage
+                                          ? const Color(0xFF89cff0) // If the message doesn't contain "check in" and it's sent by the current user, make it blue
+                                          : const Color(0xFF98FB98), // If the message doesn't contain "check in" and it's not sent by the current user, make it white
                                 ),
                                 child: ListTile(
                                   title: FutureBuilder(
@@ -238,13 +226,7 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                           username = usernameSnapshot.data!;
                                           return Text(
                                             username,
-                                            style: containsCheckIn
-                                                ? const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white)
-                                                : const TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold),
+                                            style: const TextStyle(fontWeight: FontWeight.bold),
                                           );
                                         } else {
                                           return const Text('Unknown User');
@@ -532,64 +514,44 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                                             onPressed:
                                                                 () async {
                                                               if (!_isPlaying) {
-                                                                await _audioPlayer
-                                                                    .setSourceUrl(
-                                                                        mediaUrl);
-                                                                await _audioPlayer
-                                                                    .resume();
+                                                                await _audioPlayer.setSourceUrl(mediaUrl);
+                                                                await _audioPlayer.resume();
                                                                 setState(() {
-                                                                  _isPlaying =
-                                                                      true;
-                                                                  _isPaused =
-                                                                      false;
+                                                                  _isPlaying = true;
+                                                                  _isPaused = false;
                                                                 });
                                                               } else if (_isPaused) {
-                                                                await _audioPlayer
-                                                                    .resume();
+                                                                await _audioPlayer.resume();
                                                                 setState(() {
-                                                                  _isPaused =
-                                                                      false;
+                                                                  _isPaused = false;
                                                                 });
                                                               }
                                                             },
-                                                            child: Text(
-                                                                _isPaused
+                                                            child: Text(_isPaused
                                                                     ? 'Resume'
                                                                     : 'Play'),
                                                           ),
                                                           TextButton(
-                                                            onPressed:
-                                                                () async {
-                                                              if (_isPlaying &&
-                                                                  !_isPaused) {
-                                                                await _audioPlayer
-                                                                    .pause();
+                                                            onPressed: () async {
+                                                              if (_isPlaying && !_isPaused) {
+                                                                await _audioPlayer.pause();
                                                                 setState(() {
-                                                                  _isPaused =
-                                                                      true;
+                                                                  _isPaused = true;
                                                                 });
                                                               }
                                                             },
-                                                            child: const Text(
-                                                                'Pause'),
+                                                            child: const Text('Pause'),
                                                           ),
                                                           TextButton(
-                                                            onPressed:
-                                                                () async {
-                                                              await _audioPlayer
-                                                                  .stop();
+                                                            onPressed: () async {
+                                                              await _audioPlayer.stop();
                                                               setState(() {
-                                                                _isPlaying =
-                                                                    false;
-                                                                _isPaused =
-                                                                    false;
+                                                                _isPlaying = false;
+                                                                _isPaused = false;
                                                               });
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .pop(); // Close the dialog
+                                                              Navigator.of(context).pop(); // Close the dialog
                                                             },
-                                                            child: const Text(
-                                                                'Stop'),
+                                                            child: const Text('Stop'),
                                                           ),
                                                         ],
                                                       );
@@ -600,7 +562,7 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                             }
                                           },
                                           child: SizedBox(
-                                            height: 50,
+                                            width: double.infinity,
                                             child: ClipRRect(
                                                 borderRadius:
                                                     BorderRadius.circular(15),
@@ -612,18 +574,13 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                         Row(
                                           children: [
                                             Container(
-                                              margin:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 5),
+                                              margin: const EdgeInsets.symmetric(vertical: 5),
                                               decoration: const BoxDecoration(
                                                   color: Colors.blue,
-                                                  borderRadius:
-                                                      BorderRadius.all(
-                                                          Radius.circular(15))),
+                                                  borderRadius: BorderRadius.all(Radius.circular(15))),
                                               child: IconButton(
                                                   onPressed: () async {
-                                                    String googleMapsUrl =
-                                                        "https://www.google.com/maps?q=@$latitude,$longitude,17z"; // Replace with your pre-defined link
+                                                    String googleMapsUrl = "https://www.google.com/maps?q=@$latitude,$longitude,17z";
                                                     Uri link = Uri.parse(
                                                         googleMapsUrl);
                                                     if (await canLaunchUrl(
@@ -638,44 +595,52 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                                     color: Colors.white,
                                                   )),
                                             ),
-                                            const SizedBox(
-                                              width: 10,
-                                            ),
+                                            const SizedBox(width: 10,),
                                             if (containsMedia)
                                               Container(
                                                 margin:
-                                                    const EdgeInsets.symmetric(
-                                                        vertical: 5),
+                                                    const EdgeInsets.symmetric(vertical: 5),
                                                 decoration: const BoxDecoration(
                                                     color: Colors.green,
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                            Radius.circular(
-                                                                15))),
+                                                    borderRadius: BorderRadius.all(Radius.circular(15))),
                                                 child: IconButton(
                                                     onPressed: () async {
-                                                      firestoreFetcher
-                                                          .downloadImage(
-                                                              mediaUrl,
-                                                              mediaUrl);
+                                                      firestoreFetcher.downloadImage(mediaUrl, mediaUrl);
                                                     },
                                                     icon: const Icon(
                                                       Icons.download,
                                                       color: Colors.white,
-                                                    )),
+                                                    )
+                                                ),
                                               ),
                                           ],
                                         ),
                                       // Apply bold style if the message contains "check in"
                                       Text(
                                         message,
-                                        style: containsCheckIn ||
-                                                containsAudio ||
-                                                containsVideo
+                                        style: containsCheckIn || containsAudio || containsVideo || containsJPG
                                             ? const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white)
-                                            : const TextStyle(fontSize: 15),
+                                            fontWeight: FontWeight.bold,
+                                            )
+                                            : const TextStyle(
+                                          fontWeight: FontWeight.normal,
+                                        )
+                                      ),
+                                      SizedBox(height: 10,),
+                                      FutureBuilder(
+                                        future: firestoreFetcher.getAddressFromCoordinates(latitude, longitude),
+                                        builder: (context, AsyncSnapshot<String?> addressSnapshot) {
+                                          if (addressSnapshot.connectionState == ConnectionState.waiting) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          if (addressSnapshot.hasError || addressSnapshot.data == null) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          return Text(
+                                            "Address: ${addressSnapshot.data!}",
+                                            style: TextStyle(fontWeight: FontWeight.bold),
+                                          );
+                                        },
                                       ),
                                       Align(
                                           alignment: Alignment.centerRight,
@@ -722,7 +687,7 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                       if (value == 1) {
                         firestoreFetcher.checkIn(widget.circleName, userId, context);
                       } else if (value == 2) {
-                        // Do something for the second option
+                        firestoreFetcher.quickCapture(widget.circleName, userId, context);
                       }
                       // Add more conditions if you have more options
                     },
@@ -912,41 +877,42 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                                                 height: 300,
                                                 child: ListView.builder(
                                                   shrinkWrap: true,
-                                                  itemCount: snapshot
-                                                      .data!.docs.length,
-                                                  itemBuilder:
-                                                      (context, index) {
-                                                    var checkIn = snapshot
-                                                        .data!.docs[index];
-                                                    var coordinate =
-                                                        checkIn['location']
-                                                            as GeoPoint;
-                                                    var timestamp =
-                                                        checkIn['timestamp']
-                                                            as Timestamp;
-                                                    var dateTime =
-                                                        timestamp.toDate();
-                                                    String formattedDate =
-                                                        DateFormat(
-                                                                'h:mm a, d MMMM yyyy')
-                                                            .format(dateTime);
-
-                                                    // firestoreFetcher.getAddressFromCoordinates(coordinate.latitude, coordinate.longitude).then((address) {
-                                                    //   if (address != null) {
-                                                    //     print("Address: $address");
-                                                    //     // Use the address as needed, e.g., display in UI
-                                                    //   } else {
-                                                    //     print("Failed to fetch address.");
-                                                    //   }
-                                                    // });
+                                                  itemCount: snapshot.data!.docs.length,
+                                                  itemBuilder: (context, index) {
+                                                    var checkIn = snapshot.data!.docs[index];
+                                                    var coordinate = checkIn['location'] as GeoPoint;
+                                                    var timestamp = checkIn['timestamp'] as Timestamp;
+                                                    var dateTime = timestamp.toDate();
+                                                    String formattedDate = DateFormat('h:mm a, d MMMM yyyy').format(dateTime);
 
                                                     return Column(
                                                       children: [
                                                         ListTile(
-                                                            title: Text(
-                                                                'Check-in at ${coordinate.latitude},${coordinate.longitude}'),
-                                                            subtitle: Text(
-                                                                formattedDate),
+                                                            title: FutureBuilder(
+                                                              future: firestoreFetcher.getAddressFromCoordinates(coordinate.latitude, coordinate.longitude),
+                                                              builder: (context, AsyncSnapshot<String?> addressSnapshot) {
+                                                                if (addressSnapshot.connectionState == ConnectionState.waiting) {
+                                                                  return const SizedBox.shrink();
+                                                                }
+                                                                if (addressSnapshot.hasError || addressSnapshot.data == null) {
+                                                                  return const SizedBox.shrink();
+                                                                }
+                                                                return Text(
+                                                                  "Check In at: ${addressSnapshot.data!}",
+                                                                );
+                                                              },
+                                                            ),
+                                                            subtitle: Column(
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              children: [
+                                                                Text(
+                                                                    "Coordinate: ${coordinate.latitude}.${coordinate.longitude}"
+                                                                ),
+                                                                Text(
+                                                                    formattedDate
+                                                                ),
+                                                              ],
+                                                            ),
                                                             trailing:
                                                                 IconButton(
                                                                     onPressed:

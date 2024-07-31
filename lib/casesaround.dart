@@ -1,13 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fypppp/casesaround_district.dart';
-import 'package:fypppp/circles.dart';
 import 'package:fypppp/firestore/fetchdata.dart';
-import 'package:fypppp/home.dart';
-import 'package:fypppp/navbar.dart';
-import 'package:fypppp/profile.dart';
-import 'package:fypppp/sos.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
@@ -134,13 +128,14 @@ class _CasesAroundState extends State<CasesAround> {
                         Color color = highCases
                             ? Color(0xffF88379)
                             : midCases
-                                ? const Color(0xFFFFFAA0)
-                                : const Color(0xFFF1E3C8);
+                                ? Colors.yellow
+                                :  Color(0xff33B864);
                         Color style = highCases
                             ? Colors.white
                             : midCases
                                 ? const Color(0xFF04234D)
-                                : const Color(0xFF04234D);
+                                : Colors.white;
+                        String warning = highCases ? "assets/images/red_warning.png" : midCases ? "assets/images/yellow_warning.png" : "assets/images/green_warning.png";
                         return Expanded(
                           child: cityName.isNotEmpty
                               ? GestureDetector(
@@ -163,7 +158,7 @@ class _CasesAroundState extends State<CasesAround> {
                                     margin: const EdgeInsets.symmetric(
                                         vertical: 8.0, horizontal: 4.0),
                                     decoration: BoxDecoration(
-                                      color: color,
+                                      color: Colors.white,
                                       borderRadius: BorderRadius.circular(10.0),
                                       boxShadow: [
                                         BoxShadow(
@@ -176,38 +171,47 @@ class _CasesAroundState extends State<CasesAround> {
                                     ),
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                      child: Stack(
                                         children: [
-                                          Text(
-                                            cityName,
-                                            style: TextStyle(
-                                                color: highCases
-                                                    ? Color(0xFF04234D)
-                                                    : midCases
-                                                        ? const Color(0xFF04234D)
-                                                        : const Color(0xFF04234D),
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
+                                          Positioned(
+                                            bottom: 0,
+                                            right: 0,
+                                            child: Image.asset(warning, width: 35,)
                                           ),
-                                          Text(
-                                            "Cases: ${cityOccurrences[cityName] ?? 0}",
-                                            // Display the number of occurrences
-                                            style: TextStyle(
-                                                color: highCases
-                                                    ? Color(0xFF04234D)
-                                                    : midCases
-                                                        ? const Color(0xFF04234D)
-                                                        : const Color(0xFF04234D),
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                cityName,
+                                                style: TextStyle(
+                                                    color: highCases
+                                                        ? Color(0xFF04234D)
+                                                        : midCases
+                                                            ? const Color(0xFF04234D)
+                                                            : const Color(0xFF04234D),
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              Text(
+                                                "Cases: ${cityOccurrences[cityName] ?? 0}",
+                                                // Display the number of occurrences
+                                                style: TextStyle(
+                                                    color: highCases
+                                                        ? Color(0xFF04234D)
+                                                        : midCases
+                                                            ? const Color(0xFF04234D)
+                                                            : const Color(0xFF04234D),
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
@@ -220,9 +224,7 @@ class _CasesAroundState extends State<CasesAround> {
                                   margin: const EdgeInsets.symmetric(
                                       vertical: 8.0, horizontal: 4.0),
                                   decoration: BoxDecoration(
-                                    color: highCases
-                                        ? Colors.red
-                                        : const Color(0xFFFAF4F4),
+                                    color: Colors.white,
                                     borderRadius: BorderRadius.circular(10.0),
                                     boxShadow: [
                                       BoxShadow(
@@ -655,63 +657,19 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                                         ),
                                                         Text(
                                                           formattedDateTime,
-                                                          style:
-                                                              const TextStyle(fontSize: 20),
+                                                          style: const TextStyle(fontSize: 20),
                                                         ),
                                                         const SizedBox(height: 8.0),
                                                         const Text(
-                                                          'Evidence',
+                                                          'SHA256 Hash:',
                                                           style: TextStyle(
                                                             fontWeight: FontWeight.bold,
                                                             fontSize: 15,
                                                           ),
                                                         ),
-                                                        GestureDetector(
-                                                          onTap: () async {
-                                                            if (mediaFileName.endsWith('mp4')) {
-                                                              // Import the video_player package
-                                                              Uri uri = Uri.parse(imageUrl);
-                                                              // Create a VideoPlayerController instance
-                                                              final videoPlayerController = VideoPlayerController.networkUrl(uri);
-
-                                                              // Initialize the controller and display a loading indicator while it loads
-                                                              await videoPlayerController
-                                                                  .initialize()
-                                                                  .then((_) {
-                                                                // Once initialized, show the video in a dialog
-                                                                _showVideoDialog(
-                                                                    context,
-                                                                    videoPlayerController);
-                                                              });
-                                                            } else if (mediaFileName
-                                                                .endsWith(
-                                                                    'jpg')) {
-                                                              _showImageDialog(
-                                                                  context,
-                                                                  imageUrl);
-                                                            } else {
-                                                              // Handle other file types (optional)
-                                                              print(
-                                                                  'Unsupported file type: $mediaFileName');
-                                                            }
-                                                          },
-                                                          child: imageWidget,
-                                                        ),
-                                                        const SizedBox(
-                                                            height: 8.0),
-                                                        const Text(
-                                                          'SHA256 Hash:',
-                                                          style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontSize: 15,
-                                                          ),
-                                                        ),
                                                         Text(
                                                           hashkey,
-                                                          style:
-                                                              const TextStyle(
-                                                                  fontSize: 20),
+                                                          style: const TextStyle(fontSize: 20),
                                                         )
                                                       ],
                                                     ),
@@ -884,15 +842,9 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
                                     },
                                   );
                                 }
-                                final userFlags =
-                                    snapshot.data!['flagReports'] ?? [];
-                                final hasFlagged =
-                                    userFlags.contains(documentId);
                                 return IconButton(
                                   icon: Icon(
-                                    hasFlagged
-                                        ? Icons.flag
-                                        : Icons.flag_outlined,
+                                         Icons.flag_outlined,
                                     color: Colors.red,
                                   ),
                                   onPressed: () async {

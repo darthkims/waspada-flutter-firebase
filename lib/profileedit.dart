@@ -16,7 +16,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _unameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
   bool _isLoading = false;
 
   @override
@@ -35,7 +34,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         setState(() {
           _nameController.text = currentUser.displayName ?? '';
           _unameController.text = userDataMap['username'] ?? '';
-          _phoneController.text = userDataMap['phoneNumber'] ?? '';
         });
       }
     }
@@ -72,15 +70,13 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     // Get new user data from text controllers
     String newName = _nameController.text.trim();
     String newUsername = _unameController.text.trim();
-    String newPhone = _phoneController.text.trim();
 
     // Call the update method in FirestoreFetcher
-    await _firestoreFetcher.updateUserData(newName, newUsername, newPhone);
+    await _firestoreFetcher.updateUserData(newName, newUsername);
 
     print("Updated info:");
     print('$newUsername');
     print('$newName');
-    print('$newPhone');
     // Optionally, you can reload the user data after updating
     await _loadUserData();
 
@@ -92,8 +88,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   bool _areAllFieldsFilled() {
     return _nameController.text.isNotEmpty &&
-        _unameController.text.isNotEmpty &&
-        _phoneController.text.isNotEmpty;
+        _unameController.text.isNotEmpty;
   }
 
   @override
@@ -150,23 +145,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    TextFormField(
-                      controller: _phoneController,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone Number',
-                        labelStyle: TextStyle(color: Colors.black),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 20),
                     ElevatedButton(
                       style: ButtonStyle(
                         backgroundColor: WidgetStateProperty.all(theme),
@@ -204,7 +182,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   void dispose() {
     _nameController.dispose();
     _unameController.dispose();
-    _phoneController.dispose();
     super.dispose();
   }
 }

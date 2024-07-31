@@ -40,23 +40,23 @@ class CustomNavigationBar extends StatelessWidget {
             label: 'Home',
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.sos_outlined, color: selected,),
-            icon: Icon(Icons.sos, color: Colors.red,),
+            selectedIcon: Icon(Icons.sos, color: selected,),
+            icon: Icon(Icons.sos_outlined, color: Colors.red,),
             label: 'SOS Video',
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.diversity_1_outlined, color: selected,),
-            icon: Icon(Icons.diversity_1, color: unselected,),
+            selectedIcon: Icon(Icons.diversity_1, color: selected,),
+            icon: Icon(Icons.diversity_1_outlined, color: unselected,),
             label: 'Circles', // Empty label for a cleaner look (optional)
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.settings_input_antenna_outlined, color: selected,),
-            icon: Icon(Icons.settings_input_antenna, color: unselected,),
+            selectedIcon: Icon(Icons.settings_input_antenna, color: selected,),
+            icon: Icon(Icons.settings_input_antenna_outlined, color: unselected,),
             label: 'Cases',
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.account_circle_outlined, color: selected,),
-            icon: Icon(Icons.account_circle, color: unselected,),
+            selectedIcon: Icon(Icons.account_circle, color: selected,),
+            icon: Icon(Icons.account_circle_outlined, color: unselected,),
             label: 'Profile', // Empty label for a cleaner look (optional)
           ),
         ],

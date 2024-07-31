@@ -114,7 +114,7 @@ class _ProfilePageState extends State<ProfilePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Hello $name! 😊', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),),
+              Text('Hello $name!', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),),
               const SizedBox(height: 20,),
               const Divider(),
               ListTile(
@@ -201,11 +201,12 @@ class _ViewSOSState extends State<ViewSOS> {
                 List<String> locationParts = location.split(',');
                 double latitude = double.parse(locationParts[0]);
                 double longitude = double.parse(locationParts[1]);
-                Future<String?> getAddressFromCoordinates(double latitude, double longitude) async {
-                  List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
-                  Placemark place = placemarks[0];
-                  return "${place.name}, ${place.thoroughfare}, ${place.locality}, ${place.postalCode}, ${place.administrativeArea}";
-                }
+                // Future<String?> getAddressFromCoordinates(double latitude, double longitude) async {
+                //   List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+                //   Placemark place = placemarks[0];
+                //   return "${place.name}, ${place.thoroughfare}, ${place.locality}, ${place.postalCode}, ${place.administrativeArea}";
+                // }
+                _firestoreFetcher.getAddressFromCoordinates(latitude, longitude);
                 final String documentId = snapshot.data!.docs[index].id;
 
 
@@ -217,7 +218,7 @@ class _ViewSOSState extends State<ViewSOS> {
 
 
                 return FutureBuilder<String?>(
-                    future: getAddressFromCoordinates(latitude, longitude),
+                    future: _firestoreFetcher.getAddressFromCoordinates(latitude, longitude),
                     builder: (context, addressSnapshot) {
                       if (addressSnapshot.connectionState == ConnectionState.waiting) {
                         return ListTile(
@@ -304,7 +305,7 @@ class _ViewSOSState extends State<ViewSOS> {
                                                         ),
                                                       ),
                                                       FutureBuilder(
-                                                        future: getAddressFromCoordinates(latitude, longitude),
+                                                        future: _firestoreFetcher.getAddressFromCoordinates(latitude, longitude),
                                                         builder: (context, AsyncSnapshot<String?> addressSnapshot) {
                                                           if (addressSnapshot.connectionState == ConnectionState.waiting) {
                                                             return const SizedBox.shrink(); // Return empty space while waiting for address
@@ -472,7 +473,7 @@ class _ViewSOSAudioState extends State<ViewSOSAudio> {
           final List<DocumentSnapshot> documents = snapshot.data!.docs;
           if (documents.isEmpty) {
             return const Center(
-              child: Text('No SOS audio reports found.'),
+              child: Text('No SOS audio recording'),
             );
           }
 
@@ -497,18 +498,12 @@ class _ViewSOSAudioState extends State<ViewSOSAudio> {
                 }
               }
 
-              Future<String?> getAddressFromCoordinates(double latitude, double longitude) async {
-                List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
-                Placemark place = placemarks[0];
-                return "${place.name}, ${place.thoroughfare}, ${place.locality}, ${place.postalCode}, ${place.administrativeArea}";
-              }
-
               final String documentId = snapshot.data!.docs[index].id;
               DateTime timeStamp = (snapshot.data!.docs[index]['timeStamp'] as Timestamp).toDate();
               String formattedDateTime = DateFormat('dd MMMM yyyy, hh:mm a').format(timeStamp);
 
               return FutureBuilder<String?>(
-                future: getAddressFromCoordinates(latitude, longitude),
+                future: _firestoreFetcher.getAddressFromCoordinates(latitude, longitude),
                 builder: (context, addressSnapshot) {
                   if (addressSnapshot.connectionState == ConnectionState.waiting) {
                     return ListTile(
@@ -644,7 +639,7 @@ class _ViewSOSAudioState extends State<ViewSOSAudio> {
                                                   ),
                                                 ),
                                                 FutureBuilder(
-                                                  future: getAddressFromCoordinates(latitude, longitude),
+                                                  future: _firestoreFetcher.getAddressFromCoordinates(latitude, longitude),
                                                   builder: (context, AsyncSnapshot<String?> addressSnapshot) {
                                                     if (addressSnapshot.connectionState == ConnectionState.waiting) {
                                                       return const SizedBox.shrink();

@@ -155,12 +155,12 @@ class _CirclesState extends State<Circles> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.sentiment_dissatisfied_sharp,
+                                  Icons.sentiment_dissatisfied_outlined,
                                   size: 100,
                                 ),
                                 Center(
                                   child: Text(
-                                    'No circles available. Ask your friends to add or create a new one by clicking top right button!',
+                                    'No circles available. Ask your friends to add or create a new one by tapping top right button!',
                                     style: TextStyle(fontSize: 20),
                                     textAlign: TextAlign.center,
                                   ),
@@ -223,53 +223,65 @@ class _CirclesState extends State<Circles> {
                                                 Row(
                                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                   children: [
-                                                    Text(
-                                                      circleName,
-                                                      style: const TextStyle(
-                                                        fontSize: 25,
-                                                        fontWeight: FontWeight.bold,
+                                                    Expanded(
+                                                      child: Text(
+                                                        circleName,
+                                                        style: const TextStyle(
+                                                          fontSize: 25,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
                                                       ),
-                                                      maxLines: 2,
-                                                      overflow: TextOverflow.ellipsis,
                                                     ),
                                                     IconButton(
-                                                        onPressed: () {
-                                                          showModalBottomSheet(
-                                                              context: context,
-                                                              builder: (BuildContext context) {
-                                                                return Column(
-                                                                  mainAxisSize: MainAxisSize.min,
-                                                                  children: [
-                                                                    const SizedBox(height: 10,),
-                                                                    ListTile(
-                                                                      leading: const Icon(
-                                                                        Icons.delete,
-                                                                        size: 33, // Adjust the size of the icon
-                                                                      ),
-                                                                      title: Text(
-                                                                        currentUserID == adminID ? 'Delete Circle' : 'Leave Circle',
-                                                                        style: const TextStyle(fontSize: 17), // Adjust the font size
-                                                                      ),
-                                                                      onTap: () {
-                                                                        showDialog(
-                                                                          context: context,
-                                                                          builder: (BuildContext context) {
-                                                                            return AlertDialog(
-                                                                              title: Text(
-                                                                                currentUserID == adminID ? "Confirm Delete" : "Confirm Leave",
+                                                      onPressed: () {
+                                                        showModalBottomSheet(
+                                                            context: context,
+                                                            builder: (BuildContext context) {
+                                                              return Column(
+                                                                mainAxisSize: MainAxisSize.min,
+                                                                children: [
+                                                                  const SizedBox(height: 10,),
+                                                                  Text(
+                                                                    "$circleName",
+                                                                    style: const TextStyle(
+                                                                      fontWeight: FontWeight.bold,
+                                                                      fontSize: 30
+                                                                    ),
+                                                                  ),
+                                                                  const SizedBox(height: 10,),
+                                                                  const Divider(),
+                                                                  const SizedBox(height: 10,),
+                                                                  ListTile(
+                                                                    leading: const Icon(
+                                                                      Icons.delete,
+                                                                      size: 33, // Adjust the size of the icon
+                                                                    ),
+                                                                    title: Text(
+                                                                      currentUserID == adminID ? 'Delete Circle' : 'Leave Circle',
+                                                                      style: const TextStyle(fontSize: 17), // Adjust the font size
+                                                                    ),
+                                                                    onTap: () {
+                                                                      showDialog(
+                                                                        context: context,
+                                                                        builder: (BuildContext context) {
+                                                                          return AlertDialog(
+                                                                            title: Text(
+                                                                              currentUserID == adminID ? "Confirm Delete" : "Confirm Leave",
+                                                                            ),
+                                                                            content: Text(
+                                                                              currentUserID == adminID
+                                                                                  ? "Are you sure you want to delete this circle?"
+                                                                                  : "Are you sure you want to leave this circle?",
+                                                                            ),
+                                                                            actions: <Widget>[
+                                                                              TextButton(
+                                                                                onPressed: () {
+                                                                                  Navigator.of(context).pop(); // Close the dialog
+                                                                                },
+                                                                                child: const Text("Cancel"),
                                                                               ),
-                                                                              content: Text(
-                                                                                currentUserID == adminID
-                                                                                    ? "Are you sure you want to delete this circle?"
-                                                                                    : "Are you sure you want to leave this circle?",
-                                                                              ),
-                                                                              actions: <Widget>[
-                                                                                TextButton(
-                                                                                  onPressed: () {
-                                                                                    Navigator.of(context).pop(); // Close the dialog
-                                                                                  },
-                                                                                  child: const Text("Cancel"),
-                                                                                ),
                                                                               TextButton(
                                                                                 onPressed: () {
                                                                                   if (currentUserID == adminID) {
@@ -282,19 +294,19 @@ class _CirclesState extends State<Circles> {
                                                                                 },
                                                                                 child: Text(currentUserID == adminID ? "Delete" : "Leave"),
                                                                               ),
-                                                                              ],
-                                                                            );
-                                                                          },
-                                                                        );
-                                                                      },
-                                                                    ),
-                                                                  ],
-                                                                );
-                                                              }
-                                                          );
-                                                        },
-                                                        icon: const Icon(Icons.more_horiz_outlined)
-                                                    )
+                                                                            ],
+                                                                          );
+                                                                        },
+                                                                      );
+                                                                    },
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            }
+                                                        );
+                                                      },
+                                                      icon: const Icon(Icons.more_horiz_outlined),
+                                                    ),
                                                   ],
                                                 ),
                                                 Row(
@@ -323,17 +335,15 @@ class _CirclesState extends State<Circles> {
                                               padding: const EdgeInsets.all(8),
                                               child: Row(
                                                 crossAxisAlignment: CrossAxisAlignment.end,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.spaceEvenly,
+                                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                                 children: [
                                                   Container(
                                                     decoration: const BoxDecoration(
-                                                      color: Color(0xFFF0E715),
+                                                      color: Color(0xFF9ACD32),
                                                       shape: BoxShape.circle,
                                                     ),
                                                     child: IconButton(
-                                                      icon:
-                                                          const Icon(Icons.my_location_outlined, color: Colors.white,),
+                                                      icon: const Icon(Icons.my_location_outlined, color: Colors.white,),
                                                       onPressed: () {
                                                         firestoreFetcher.checkIn(circleName, currentUserID, context);
                                                       },
@@ -359,7 +369,8 @@ class _CirclesState extends State<Circles> {
                                       ),
                                     ],
                                   ),
-                                ),
+                                )
+
                               );
                             },
                           );

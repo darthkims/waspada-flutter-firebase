@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "360114951078",
-    "project_id": "waspadafyp1",
-    "storage_bucket": "waspadafyp1.appspot.com"
+    "project_number": "635642679041",
+    "project_id": "waspada-4faed",
+    "storage_bucket": "waspada-4faed.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:360114951078:android:d243556dea760215c0b567",
+        "mobilesdk_app_id": "1:635642679041:android:9b3e352bad6f13a6331500",
         "android_client_info": {
           "package_name": "com.example.fypppp"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCwqwhvFUYAA7TPqXRhl6iFOmCnTze8PTc"
+          "current_key": "AIzaSyA93lrIMISm5qI1U0xvrq6dyJl6JrQTPFs"
         }
       ],
       "services": {

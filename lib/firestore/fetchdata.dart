@@ -424,7 +424,7 @@ class FirestoreFetcher {
 
 
             // Prepare FCM request URL
-            final url = Uri.parse('https://fcm.googleapis.com/v1/projects/waspadafyp1/messages:send');
+            final url = Uri.parse('https://fcm.googleapis.com/v1/projects/waspada-4faed/messages:send');
 
             // Prepare authorization header
             final oauthToken = await retrieveOAuthToken(); // Retrieve OAuth token from Firestore or any other source
@@ -521,7 +521,7 @@ class FirestoreFetcher {
                 };
 
                 // Prepare FCM request URL and authorization header
-                final url = Uri.parse('https://fcm.googleapis.com/v1/projects/waspadafyp1/messages:send');
+                final url = Uri.parse('https://fcm.googleapis.com/v1/projects/waspada-4faed/messages:send');
                 final oauthToken = await retrieveOAuthToken(); // Retrieve OAuth token
                 final authorization = 'Bearer $oauthToken';
 
@@ -652,10 +652,11 @@ class FirestoreFetcher {
 
 
             // Prepare FCM request URL
-            final url = Uri.parse('https://fcm.googleapis.com/v1/projects/waspadafyp1/messages:send');
+            final url = Uri.parse('https://fcm.googleapis.com/v1/projects/waspada-4faed/messages:send');
 
             // Prepare authorization header
             final oauthToken = await retrieveOAuthToken(); // Retrieve OAuth token from Firestore or any other source
+            print(oauthToken);
             final authorization = 'Bearer $oauthToken';
 
             // Send FCM notification using HTTP POST request
@@ -849,6 +850,7 @@ class FirestoreFetcher {
       DocumentSnapshot<Map<String, dynamic>> oauthSnapshot =
       await FirebaseFirestore.instance.collection('token').doc('oauth').get();
       if (oauthSnapshot.exists) {
+        print(oauthSnapshot.data()?['oauth']);
         return oauthSnapshot.data()?['oauth'];
       } else {
         print("OAuth token document not found in Firestore.");

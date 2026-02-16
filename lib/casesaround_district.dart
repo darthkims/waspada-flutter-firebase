@@ -250,12 +250,17 @@ class _CasesAroundDistrictState extends State<CasesAroundDistrict> {
                   return const SizedBox(); // Return an empty widget if index is out of range
                 }
                 final city = cityNames[index];
-                return SideTitleWidget(
-                  axisSide: meta.axisSide,
-                  child: Text(
-                    city,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
+                // return SideTitleWidget(
+                //   // axisSide: meta.axisSide,
+                //   meta: meta,
+                //   child: Text(
+                //     city,
+                //     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                //   ),
+                // );
+                return Text(
+                  city,
+                  style: const TextStyle(fontSize: 10), // optional styling
                 );
               },
             ),

@@ -1,5 +1,8 @@
 plugins {
     id "com.android.application"
+    // START: FlutterFire Configuration
+    id 'com.google.gms.google-services'
+    // END: FlutterFire Configuration
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
@@ -24,12 +27,17 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.example.fypppp"
-    compileSdkVersion 34
+    compileSdk 36
     ndkVersion flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 
     defaultConfig {
@@ -63,4 +71,5 @@ flutter {
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
     // Other dependencies
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
 }
